@@ -1,0 +1,48 @@
+I'm building a hackathon project called GroundCheck for HackSummer'26 (theme: "Trust Me").
+I've attached the PRD and TRD below — build the full working web app exactly to these specs.
+
+Requirements:
+1. Single interactive web app, Mapbox GL JS as the core map surface (dark style,
+   mapbox://styles/mapbox/dark-v11), centered on Islamabad, Pakistan by default.
+2. Click-to-report flow: clicking the map starts a report, reveals a radius slider
+   (50m-500m) and a category picker (fake business / road hazard / unsafe area / scam
+   location) plus a short description field.
+3. As the radius slider is dragged, live-query the OpenStreetMap Overpass API
+   (https://overpass-api.de/api/interpreter, no key required) scoped to the current
+   radius and category, debounced ~300ms, and show a live "N features found within Xm"
+   readout.
+4. On submit, compute a trust score (0-100) using: OSM match proximity (0-40 pts),
+   community votes (0-40 pts), and a fixed baseline (20 pts) — exactly as specified in
+   the TRD's scoring formula.
+5. Render each report as BOTH a color-coded marker (green/amber/red by score) AND a
+   contribution to a Mapbox GL heatmap layer on a GeoJSON source, where the chosen
+   radius drives heatmap-radius and the trust score drives heatmap-weight — use Mapbox's
+   own heatmap layer/paint expressions, not a custom renderer.
+6. Add upvote/downvote buttons per report that recompute its score live.
+7. Implement the security module exactly as in the TRD:
+   - Sybil defense: down-weight (don't block) actions from the same session if more than
+     ~5 actions occur within a 30s rolling window.
+   - Impossible-travel check: flag a report as "spoof_suspected" if the same session's
+     consecutive reports imply travel faster than ~200km/h, and exclude it from scoring
+     until reviewed.
+   - Tamper-evident hash chain: SHA-256 (Web Crypto API) each report chained to the
+     previous hash; add a "Verify chain" button that recomputes the whole chain and
+     shows exactly which link is broken if any record was altered.
+8. All state in-memory for this MVP (no backend/database needed) — a static
+   HTML/CSS/JS app is fine, but structure the code cleanly (separate concerns even if
+   in one file) so it's easy to extend later.
+9. Prompt for a Mapbox public token on load (pk.*) instead of hardcoding one, with a
+   short instruction linking to account.mapbox.com/access-tokens.
+10. Visual style: dark, security/civic tone — near-black background, cyan/teal accents
+    for verified states, amber/red for lower trust, monospace for hashes/scores,
+    clean sans-serif for everything else. No gradients or heavy decoration.
+11. Make it deployable as-is on Replit with a single click (static template is fine).
+
+Build the complete, working app now — all files, fully wired end to end, not a
+scaffold or placeholder. After building, tell me exactly what to click to run it.
+
+--- PRD ---
+[paste PRD.md content here]
+
+--- TRD ---
+[paste TRD.md content here]
