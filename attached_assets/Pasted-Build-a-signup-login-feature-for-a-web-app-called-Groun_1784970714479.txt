@@ -1,0 +1,28 @@
+Build a signup/login feature for a web app called GroundCheck with identity verification, with these requirements:
+
+FORM FIELDS
+- Full name (text)
+- CNIC number (Pakistani format: 12345-1234567-1), with client-side format validation
+- Phone number (optional)
+- CNIC front-side photo upload (image file, max 5MB, jpg/png only)
+- A required consent checkbox: "I understand my CNIC details are collected to verify my identity on this platform and will be stored securely."
+
+VERIFICATION LOGIC (client-side/demo-scope, not real NADRA integration)
+- Run OCR on the uploaded CNIC image (use Tesseract.js) to extract the name and CNIC number printed on the card.
+- Compare the OCR result against what the user typed.
+- If they match closely: mark the account "verified."
+- If they don't match: do NOT auto-reject. Mark the account "flagged for review" instead — OCR isn't perfect, so this should be a review queue, not an automatic block or accusation.
+
+SECURITY REQUIREMENTS
+- Never store the CNIC number or image in plain, freely-readable form. Encrypt the uploaded image at rest; store only a hashed version of the CNIC number for duplicate-detection, plus an encrypted copy of the real number for admin review.
+- Never render the full CNIC number back to the UI after signup — mask it (e.g. 12345-•••••••-1).
+- Rate-limit signup attempts per session/IP to prevent bulk fake-account creation.
+- Reject non-image file uploads and oversized files before they're processed.
+- Do not log CNIC numbers or images in plaintext in any console/debug output.
+
+FLAGGED-ACCOUNT HANDLING
+- A flagged (mismatched) account gets an entry appended to the existing tamper-evident hash chain, same as reports do — so there's a permanent, unalterable record of the flag with a timestamp.
+- Show the user a clear message: "Your details couldn't be automatically confirmed and have been flagged for review." Do not claim police involvement or automatic legal action anywhere in the UI or code comments — the flag creates an auditable record; escalation to authorities is a human decision outside the app's control.
+- Give the admin/review side a simple dashboard to see flagged accounts and their chain entries.
+
+Keep this scoped to what's realistic for a hackathon demo: this is identity-plausibility checking, not government-verified identity confirmation.
