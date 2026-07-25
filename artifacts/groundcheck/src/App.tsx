@@ -1,239 +1,189 @@
-import React, { useEffect, useRef, useState, useCallback } from 'react';
-import mapboxgl from 'mapbox-gl';
+import { useEffect, useRef, useState, useCallback } from 'react';
+import L from 'leaflet';
+import 'leaflet.heat';
 import { createRoot } from 'react-dom/client';
-import { TokenDialog } from './components/TokenDialog';
 import { ReportPanel } from './components/ReportPanel';
 import { ChainStatus } from './components/ChainStatus';
 import { Legend } from './components/Legend';
 import { ReportPopup } from './components/ReportPopup';
-import { addReport, getAllReports, getReport, updateReport, buildHeatmapGeoJSON } from './lib/store';
+import { addReport, getAllReports, getReport, updateReport, buildHeatmapPoints } from './lib/store';
 import { appendToChain, getChainLength } from './lib/chain';
 import { checkImpossibleTravel, recordAction } from './lib/security';
 import { computeScore, scoreToColor } from './lib/scoring';
 import type { Report } from './lib/types';
 
-function createMarkerElement(score: number, flagged: boolean): HTMLElement {
-  const el = document.createElement('div');
-  el.style.cssText = `
-    width: 16px; height: 16px; border-radius: 50%;
-    border: 2px solid ${flagged ? '#f97316' : scoreToColor(score)};
-    background: ${flagged ? 'transparent' : scoreToColor(score) + '99'};
-    cursor: pointer;
-    box-shadow: 0 0 6px ${flagged ? '#f97316' : scoreToColor(score)};
-    ${flagged ? 'border-style: dashed;' : ''}
-  `;
-  return el;
+// Fix Leaflet's default icon path issues with bundlers
+delete (L.Icon.Default.prototype as unknown as Record<string, unknown>)._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: '',
+  iconUrl: '',
+  shadowUrl: '',
+});
+
+function createLeafletIcon(score: number, flagged: boolean): L.DivIcon {
+  const color = flagged ? '#f97316' : scoreToColor(score);
+  const bg = flagged ? 'transparent' : color + 'aa';
+  const border = flagged ? 'border-style:dashed;' : '';
+  return L.divIcon({
+    className: '',
+    html: `<div style="width:16px;height:16px;border-radius:50%;background:${bg};border:2px solid ${color};${border}box-shadow:0 0 8px ${color};cursor:pointer;"></div>`,
+    iconSize: [16, 16],
+    iconAnchor: [8, 8],
+    popupAnchor: [0, -12],
+  });
 }
 
 export default function App() {
   const mapContainer = useRef<HTMLDivElement>(null);
-  const mapRef = useRef<mapboxgl.Map | null>(null);
-  
-  const [token, setToken] = useState<string | null>(() => sessionStorage.getItem('mapbox_token'));
+  const mapRef = useRef<L.Map | null>(null);
+  const heatRef = useRef<L.HeatLayer | null>(null);
+
   const [pendingLocation, setPendingLocation] = useState<{ lat: number; lon: number } | null>(null);
-  const [chainLength, setChainLength] = useState<number>(0);
-  
-  // Track state so react can rerender overlay components
-  const [reportsTick, setReportsTick] = useState(0);
+  const [chainLength, setChainLength] = useState(0);
+  const [, setTick] = useState(0); // force re-render for ChainStatus
 
-  // Store references to mapbox markers/popups
-  const markersRef = useRef<Map<string, { marker: mapboxgl.Marker; popup: mapboxgl.Popup; root: ReturnType<typeof createRoot>; el: HTMLElement }>>(new Map());
+  const markersRef = useRef<Map<string, {
+    marker: L.Marker;
+    popup: L.Popup;
+    root: ReturnType<typeof createRoot>;
+    popupEl: HTMLElement;
+  }>>(new Map());
 
-  // Handle Token
-  const handleToken = (t: string) => {
-    sessionStorage.setItem('mapbox_token', t);
-    setToken(t);
-  };
-
-  // Init Map
+  // Init map once on mount
   useEffect(() => {
-    if (!token || !mapContainer.current || mapRef.current) return;
+    if (!mapContainer.current || mapRef.current) return;
 
-    mapboxgl.accessToken = token;
-    const map = new mapboxgl.Map({
-      container: mapContainer.current,
-      style: 'mapbox://styles/mapbox/dark-v11',
-      center: [73.0479, 33.7294], // Islamabad
-      zoom: 12,
+    const map = L.map(mapContainer.current, {
+      center: [33.7294, 73.0479], // Islamabad
+      zoom: 13,
+      zoomControl: false,
     });
-    
-    map.addControl(new mapboxgl.NavigationControl(), 'top-left');
+
+    L.control.zoom({ position: 'topleft' }).addTo(map);
+
+    // CartoDB Dark Matter — dark OSM tiles, no API key needed
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+      attribution:
+        '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors ' +
+        '&copy; <a href="https://carto.com/attributions">CARTO</a>',
+      subdomains: 'abcd',
+      maxZoom: 20,
+    }).addTo(map);
+
+    // Heat layer (leaflet.heat)
+    heatRef.current = L.heatLayer([], {
+      radius: 35,
+      blur: 25,
+      maxZoom: 17,
+      max: 1.0,
+      gradient: {
+        0.0: 'rgba(239,68,68,0)',
+        0.3: '#ef4444',
+        0.6: '#f59e0b',
+        1.0: '#22c55e',
+      },
+    }).addTo(map);
+
+    // Map click → start a report (only on bare map, not on markers)
+    map.on('click', (e) => {
+      setPendingLocation({ lat: e.latlng.lat, lon: e.latlng.lng });
+    });
+
     mapRef.current = map;
-
-    map.on('load', () => {
-      map.addSource('reports', {
-        type: 'geojson',
-        data: { type: 'FeatureCollection', features: [] },
-      });
-      
-      map.addLayer({
-        id: 'reports-heat',
-        type: 'heatmap',
-        source: 'reports',
-        paint: {
-          'heatmap-weight': ['get', 'weight'],
-          'heatmap-radius': ['get', 'radius'],
-          'heatmap-intensity': 1,
-          'heatmap-color': [
-            'interpolate', ['linear'], ['heatmap-density'],
-            0, 'rgba(239,68,68,0)',
-            0.4, 'rgba(239,68,68,0.6)',
-            0.6, 'rgba(245,158,11,0.7)',
-            1, 'rgba(34,197,94,0.9)',
-          ],
-          'heatmap-opacity': 0.75,
-        },
-      });
-
-      map.on('click', (e) => {
-        // Prevent opening panel if we clicked on a marker
-        // Unfortunately standard markers don't trigger map 'click' with features, 
-        // they stop propagation themselves if we click the marker element.
-        // We just ensure pending location gets updated on raw map clicks.
-        setPendingLocation({ lat: e.lngLat.lat, lon: e.lngLat.lng });
-      });
-    });
 
     return () => {
       map.remove();
       mapRef.current = null;
+      heatRef.current = null;
     };
-  }, [token]);
-
-  // Handle heatmap refresh
-  const refreshHeatmap = useCallback(() => {
-    if (!mapRef.current) return;
-    const source = mapRef.current.getSource('reports') as mapboxgl.GeoJSONSource;
-    if (source) {
-      source.setData(buildHeatmapGeoJSON());
-    }
   }, []);
 
-  // Update a marker visually
+  const refreshHeatmap = useCallback(() => {
+    heatRef.current?.setLatLngs(buildHeatmapPoints());
+  }, []);
+
   const updateMarkerVisuals = useCallback((report: Report) => {
     const item = markersRef.current.get(report.id);
     if (!item) return;
-    
-    // Update marker styling
-    const color = scoreToColor(report.score);
-    item.el.style.borderColor = report.flagged ? '#f97316' : color;
-    item.el.style.backgroundColor = report.flagged ? 'transparent' : color + '99';
-    item.el.style.boxShadow = `0 0 6px ${report.flagged ? '#f97316' : color}`;
-
-    // Update popup react content
+    item.marker.setIcon(createLeafletIcon(report.score, report.flagged));
     item.root.render(<ReportPopup report={report} />);
   }, []);
 
-  // Handle Report Submission
-  const handleSubmitReport = async (report: Report) => {
-    // 1. Checks & computes
+  const handleSubmitReport = useCallback(async (report: Report) => {
     report.flagged = checkImpossibleTravel(report.lat, report.lon, report.time);
     recordAction();
     report.score = computeScore(report);
-    
-    // 2. Add to store
-    addReport(report);
-    setReportsTick(t => t + 1);
 
-    // 3. Chain
+    addReport(report);
+    setTick(t => t + 1);
+
     await appendToChain(report);
     setChainLength(getChainLength());
 
-    // 4. Map Marker & Popup
-    const el = createMarkerElement(report.score, report.flagged);
-    
-    const popupContainer = document.createElement('div');
-    // Basic mapbox popup styles conflict with our dark theme, so we'll customize in CSS or just use our react component's styles
-    popupContainer.className = 'bg-card border border-border rounded-lg shadow-xl overflow-hidden';
-    
-    const popup = new mapboxgl.Popup({ 
-      offset: 15,
-      closeButton: false,
-      maxWidth: '300px',
-      className: 'groundcheck-popup' // Will need some CSS if we want to override Mapbox's white background
-    }).setDOMContent(popupContainer);
-    
-    const root = createRoot(popupContainer);
+    if (!mapRef.current) return;
+
+    // Popup container (React renders into it)
+    const popupEl = document.createElement('div');
+    const root = createRoot(popupEl);
     root.render(<ReportPopup report={report} />);
 
-    if (mapRef.current) {
-      const marker = new mapboxgl.Marker({ element: el })
-        .setLngLat([report.lon, report.lat])
-        .setPopup(popup)
-        .addTo(mapRef.current);
-        
-      markersRef.current.set(report.id, { marker, popup, root, el });
-    }
+    const popup = L.popup({
+      className: 'gc-popup',
+      minWidth: 240,
+      maxWidth: 300,
+      closeButton: true,
+      autoPan: true,
+    }).setContent(popupEl);
+
+    const marker = L.marker([report.lat, report.lon], {
+      icon: createLeafletIcon(report.score, report.flagged),
+    });
+
+    // Stop map click from firing when clicking the marker
+    marker.on('click', (e) => { L.DomEvent.stopPropagation(e); });
+    marker.bindPopup(popup).addTo(mapRef.current);
+
+    markersRef.current.set(report.id, { marker, popup, root, popupEl });
 
     refreshHeatmap();
     setPendingLocation(null);
-  };
+  }, [refreshHeatmap]);
 
-  // Handle global vote events from popups
+  // Global vote events dispatched from ReportPopup (inside Leaflet popup DOM)
   useEffect(() => {
     const onVote = (e: Event) => {
-      const { id, dir } = (e as CustomEvent).detail;
+      const { id, dir } = (e as CustomEvent<{ id: string; dir: 'up' | 'down' }>).detail;
       const report = getReport(id);
       if (!report) return;
-
       recordAction();
-      const updates = dir === 'up' 
-        ? { up: report.up + 1 }
-        : { down: report.down + 1 };
-        
-      const updated = updateReport(id, updates);
+      const updated = updateReport(id, dir === 'up' ? { up: report.up + 1 } : { down: report.down + 1 });
       if (updated) {
-        setReportsTick(t => t + 1);
+        setTick(t => t + 1);
         updateMarkerVisuals(updated);
         refreshHeatmap();
       }
     };
-
     window.addEventListener('groundcheck:vote', onVote);
     return () => window.removeEventListener('groundcheck:vote', onVote);
   }, [refreshHeatmap, updateMarkerVisuals]);
 
-  // Inject Mapbox Popup CSS overrides
-  useEffect(() => {
-    const style = document.createElement('style');
-    style.innerHTML = `
-      .groundcheck-popup .mapboxgl-popup-content {
-        background: transparent;
-        padding: 0;
-        box-shadow: none;
-      }
-      .groundcheck-popup .mapboxgl-popup-tip {
-        border-top-color: hsl(var(--card));
-        border-bottom-color: hsl(var(--card));
-      }
-    `;
-    document.head.appendChild(style);
-    return () => { document.head.removeChild(style); };
-  }, []);
-
   return (
     <div style={{ position: 'relative', width: '100vw', height: '100vh', background: '#0a0c10' }}>
-      {!token && <TokenDialog onToken={handleToken} />}
-      
-      <div 
-        ref={mapContainer} 
+      <div
+        ref={mapContainer}
         data-testid="map-container"
-        style={{ width: '100%', height: '100%' }} 
+        style={{ width: '100%', height: '100%' }}
       />
-      
-      {token && (
-        <>
-          <ChainStatus reports={getAllReports()} chainLength={chainLength} />
-          <Legend />
-          
-          {pendingLocation && (
-            <ReportPanel
-              pendingLocation={pendingLocation}
-              onSubmit={handleSubmitReport}
-              onClose={() => setPendingLocation(null)}
-            />
-          )}
-        </>
+
+      <ChainStatus reports={getAllReports()} chainLength={chainLength} />
+      <Legend />
+
+      {pendingLocation && (
+        <ReportPanel
+          pendingLocation={pendingLocation}
+          onSubmit={handleSubmitReport}
+          onClose={() => setPendingLocation(null)}
+        />
       )}
     </div>
   );

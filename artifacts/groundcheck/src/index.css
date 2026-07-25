@@ -1,5 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap');
-@import 'mapbox-gl/dist/mapbox-gl.css';
+@import 'leaflet/dist/leaflet.css';
 @import 'tailwindcss';
 @import 'tw-animate-css';
 @plugin "@tailwindcss/typography";
@@ -106,19 +106,76 @@
   --radius: 0.375rem;
 }
 
-html, body, #root { 
-  height: 100%; 
-  margin: 0; 
-  padding: 0; 
+html, body, #root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
   background-color: hsl(var(--background));
   color: hsl(var(--foreground));
 }
 
-.mapboxgl-map { 
-  font-family: var(--app-font-sans) !important; 
+.font-mono {
+  font-family: var(--app-font-mono) !important;
 }
-.font-mono { 
-  font-family: var(--app-font-mono) !important; 
+
+/* ── Leaflet dark theme overrides ── */
+
+/* Popup wrapper */
+.gc-popup .leaflet-popup-content-wrapper {
+  background: hsl(220, 14%, 7%);
+  color: hsl(210, 20%, 90%);
+  border: 1px solid hsl(220, 13%, 16%);
+  border-radius: 0.5rem;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+  padding: 0;
+}
+
+.gc-popup .leaflet-popup-content {
+  margin: 0;
+  width: auto !important;
+}
+
+/* Popup tip (arrow) */
+.gc-popup .leaflet-popup-tip-container .leaflet-popup-tip {
+  background: hsl(220, 14%, 7%);
+  box-shadow: none;
+}
+
+/* Close button */
+.gc-popup .leaflet-popup-close-button {
+  color: hsl(210, 10%, 50%) !important;
+  font-size: 18px !important;
+  top: 6px !important;
+  right: 8px !important;
+}
+.gc-popup .leaflet-popup-close-button:hover {
+  color: hsl(186, 100%, 50%) !important;
+}
+
+/* Zoom controls */
+.leaflet-control-zoom a {
+  background: hsl(220, 14%, 7%) !important;
+  color: hsl(210, 20%, 90%) !important;
+  border-color: hsl(220, 13%, 16%) !important;
+}
+.leaflet-control-zoom a:hover {
+  background: hsl(220, 14%, 12%) !important;
+  color: hsl(186, 100%, 50%) !important;
+}
+
+/* Attribution */
+.leaflet-control-attribution {
+  background: rgba(10, 12, 16, 0.75) !important;
+  color: hsl(210, 10%, 45%) !important;
+  font-size: 10px !important;
+}
+.leaflet-control-attribution a {
+  color: hsl(186, 100%, 50%) !important;
+}
+
+/* Prevent Leaflet default icon from showing as broken image */
+.leaflet-marker-icon.leaflet-zoom-animated {
+  will-change: transform;
 }
 
 @layer base {

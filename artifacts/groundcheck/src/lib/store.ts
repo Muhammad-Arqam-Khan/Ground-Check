@@ -23,27 +23,9 @@ export function updateReport(id: string, updates: Partial<Report>): Report | und
   return reports[idx];
 }
 
-type HeatmapFeatureCollection = {
-  type: 'FeatureCollection';
-  features: Array<{
-    type: 'Feature';
-    geometry: { type: 'Point'; coordinates: [number, number] };
-    properties: { weight: number; radius: number };
-  }>;
-};
-
-export function buildHeatmapGeoJSON(): HeatmapFeatureCollection {
-  return {
-    type: 'FeatureCollection',
-    features: reports
-      .filter(r => !r.flagged)
-      .map(r => ({
-        type: 'Feature' as const,
-        geometry: { type: 'Point' as const, coordinates: [r.lon, r.lat] },
-        properties: {
-          weight: r.score / 100,  // normalize 0-1 for heatmap-weight
-          radius: r.radiusMeters,
-        },
-      })),
-  };
+// Returns [lat, lng, intensity] tuples for leaflet.heat
+export function buildHeatmapPoints(): [number, number, number][] {
+  return reports
+    .filter(r => !r.flagged)
+    .map(r => [r.lat, r.lon, r.score / 100] as [number, number, number]);
 }
