@@ -11,7 +11,10 @@ import { scoreToColor } from '@/lib/scoring';
 export interface NativeMapProps {
   reports: Report[];
   onMarkerPress: (id: string) => void;
-  onMapPress: () => void;
+  onMapTap: (lat: number, lon: number) => void;
+  pinnedLocation?: { lat: number; lon: number } | null;
+  onPinDrag?: (lat: number, lon: number) => void;
+  onPinPress?: () => void;
 }
 
 export default function NativeMap({ reports, onMarkerPress }: NativeMapProps) {

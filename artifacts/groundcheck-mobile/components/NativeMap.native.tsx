@@ -3,7 +3,7 @@
  * Metro picks this file on iOS/Android.
  */
 import React from 'react';
-import MapView, { Circle, Marker } from 'react-native-maps';
+import MapView, { Circle, Marker, MapPressEvent, MarkerDragStartEndEvent } from 'react-native-maps';
 import { StyleSheet } from 'react-native';
 import { Report } from '@/lib/types';
 import { scoreToColor } from '@/lib/scoring';
@@ -11,7 +11,11 @@ import { scoreToColor } from '@/lib/scoring';
 export interface NativeMapProps {
   reports: Report[];
   onMarkerPress: (id: string) => void;
-  onMapPress: () => void;
+  /** Called when user taps empty map space; receives tapped coordinates */
+  onMapTap: (lat: number, lon: number) => void;
+  pinnedLocation?: { lat: number; lon: number } | null;
+  onPinDrag?: (lat: number, lon: number) => void;
+  onPinPress?: () => void;
 }
 
 const DEFAULT_REGION = {
@@ -21,7 +25,14 @@ const DEFAULT_REGION = {
   longitudeDelta: 12,
 };
 
-export default function NativeMap({ reports, onMarkerPress, onMapPress }: NativeMapProps) {
+export default function NativeMap({
+  reports,
+  onMarkerPress,
+  onMapTap,
+  pinnedLocation,
+  onPinDrag,
+  onPinPress,
+}: NativeMapProps) {
   const activeReports = reports.filter((r) => !r.flagged);
   const initialRegion =
     activeReports.length > 0
@@ -33,11 +44,21 @@ export default function NativeMap({ reports, onMarkerPress, onMapPress }: Native
         }
       : DEFAULT_REGION;
 
+  const handleMapPress = (e: MapPressEvent) => {
+    const { latitude, longitude } = e.nativeEvent.coordinate;
+    onMapTap(latitude, longitude);
+  };
+
+  const handlePinDragEnd = (e: MarkerDragStartEndEvent) => {
+    const { latitude, longitude } = e.nativeEvent.coordinate;
+    onPinDrag?.(latitude, longitude);
+  };
+
   return (
     <MapView
       style={StyleSheet.absoluteFill}
       initialRegion={initialRegion}
-      onPress={onMapPress}
+      onPress={handleMapPress}
     >
       {activeReports.map((report) => (
         <React.Fragment key={report.id}>
@@ -58,6 +79,19 @@ export default function NativeMap({ reports, onMarkerPress, onMapPress }: Native
           />
         </React.Fragment>
       ))}
+
+      {pinnedLocation && (
+        <Marker
+          coordinate={{ latitude: pinnedLocation.lat, longitude: pinnedLocation.lon }}
+          pinColor="#6366f1"
+          draggable
+          onDragEnd={handlePinDragEnd}
+          onPress={(e) => {
+            e.stopPropagation?.();
+            onPinPress?.();
+          }}
+        />
+      )}
     </MapView>
   );
 }

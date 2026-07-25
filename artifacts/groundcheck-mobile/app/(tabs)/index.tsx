@@ -111,6 +111,7 @@ export default function MapScreen() {
   const insets = useSafeAreaInsets();
   const { reports, voteReport } = useReports();
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [pinnedLocation, setPinnedLocation] = useState<{ lat: number; lon: number } | null>(null);
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
   const selectedReport = reports.find((r) => r.id === selectedId) ?? null;
@@ -126,6 +127,22 @@ export default function MapScreen() {
     }
   };
 
+  const handleMapTap = (lat: number, lon: number) => {
+    // Place / move the pin and dismiss any open report card
+    setPinnedLocation({ lat, lon });
+    selectReport(null);
+  };
+
+  const handlePinPress = () => {
+    if (!pinnedLocation) return;
+    const { lat, lon } = pinnedLocation;
+    setPinnedLocation(null);
+    router.push({
+      pathname: '/file',
+      params: { lat: String(lat), lon: String(lon) },
+    });
+  };
+
   const webTopPad = Platform.OS === 'web' ? 67 : insets.top;
   const webBottomPad = Platform.OS === 'web' ? 34 : 0;
 
@@ -134,7 +151,10 @@ export default function MapScreen() {
       <NativeMap
         reports={reports}
         onMarkerPress={(id) => selectReport(id)}
-        onMapPress={() => selectReport(null)}
+        onMapTap={handleMapTap}
+        pinnedLocation={pinnedLocation}
+        onPinDrag={(lat, lon) => setPinnedLocation({ lat, lon })}
+        onPinPress={handlePinPress}
       />
 
       {/* Header */}
@@ -174,6 +194,31 @@ export default function MapScreen() {
         <Ionicons name="add" size={30} color="#fff" />
       </TouchableOpacity>
 
+      {/* Pin-placed callout: tap to open File Report */}
+      {pinnedLocation && !selectedReport && (
+        <View
+          style={[
+            styles.pinCallout,
+            {
+              bottom: 84 + 12 + webBottomPad,
+              backgroundColor: colors.background,
+              shadowColor: colors.nmDark,
+            },
+          ]}
+        >
+          <Ionicons name="location" size={16} color="#6366f1" />
+          <Text style={[styles.pinCalloutText, { color: colors.foreground }]}>
+            Tap the pin to file a report here
+          </Text>
+          <Pressable
+            onPress={() => setPinnedLocation(null)}
+            hitSlop={8}
+          >
+            <Ionicons name="close" size={16} color={colors.mutedForeground} />
+          </Pressable>
+        </View>
+      )}
+
       {/* Report detail card */}
       {selectedReport && (
         <Animated.View
@@ -200,6 +245,14 @@ export default function MapScreen() {
             onVote={(vote) => voteReport(selectedReport.id, vote)}
           />
         </Animated.View>
+      )}
+
+      {/* Long-press hint — shown only when no pin or report is active */}
+      {!pinnedLocation && !selectedReport && (
+        <View style={[styles.hintPill, { backgroundColor: colors.background + 'dd', shadowColor: colors.nmDark }]}>
+          <Ionicons name="location-outline" size={13} color={colors.mutedForeground} />
+          <Text style={[styles.hintText, { color: colors.mutedForeground }]}>Tap map to place a report pin</Text>
+        </View>
       )}
     </View>
   );
@@ -310,4 +363,43 @@ const styles = StyleSheet.create({
     borderRadius: 999,
   },
   voteCount: { fontSize: 12, fontFamily: 'Inter_500Medium' },
+  pinCallout: {
+    position: 'absolute',
+    left: 16,
+    right: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 16,
+    shadowOffset: { width: 4, height: 4 },
+    shadowOpacity: 0.6,
+    shadowRadius: 10,
+    elevation: 6,
+  },
+  pinCalloutText: {
+    flex: 1,
+    fontSize: 14,
+    fontFamily: 'Inter_500Medium',
+  },
+  hintPill: {
+    position: 'absolute',
+    alignSelf: 'center',
+    bottom: 84 + 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 14,
+    paddingVertical: 7,
+    borderRadius: 999,
+    shadowOffset: { width: 2, height: 2 },
+    shadowOpacity: 0.4,
+    shadowRadius: 6,
+    elevation: 3,
+  },
+  hintText: {
+    fontSize: 12,
+    fontFamily: 'Inter_400Regular',
+  },
 });

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -15,7 +15,7 @@ import * as Location from 'expo-location';
 import * as Haptics from 'expo-haptics';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { useColors } from '@/hooks/useColors';
 import { useReports } from '@/context/ReportsContext';
 import { CATEGORIES, ReportCategory } from '@/lib/types';
@@ -50,15 +50,28 @@ export default function FileReportScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const { addReport } = useReports();
+  const params = useLocalSearchParams<{ lat?: string; lon?: string }>();
 
-  const [lat, setLat] = useState<number | null>(null);
-  const [lon, setLon] = useState<number | null>(null);
+  const prefillLat = params.lat ? parseFloat(params.lat) : null;
+  const prefillLon = params.lon ? parseFloat(params.lon) : null;
+  const hasPrefill = prefillLat !== null && !isNaN(prefillLat) && prefillLon !== null && !isNaN(prefillLon);
+
+  const [lat, setLat] = useState<number | null>(hasPrefill ? prefillLat : null);
+  const [lon, setLon] = useState<number | null>(hasPrefill ? prefillLon : null);
   const [category, setCategory] = useState<ReportCategory>('road_hazard');
   const [description, setDescription] = useState('');
   const [radius, setRadius] = useState(100);
   const [locating, setLocating] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+
+  // Sync pre-filled coordinates when params change (e.g. navigated from map pin)
+  useEffect(() => {
+    if (hasPrefill) {
+      setLat(prefillLat);
+      setLon(prefillLon);
+    }
+  }, [params.lat, params.lon]);
 
   const webTopPad = Platform.OS === 'web' ? 67 : insets.top;
   const webBottomPad = Platform.OS === 'web' ? 34 + 50 : insets.bottom + 0;
@@ -79,7 +92,10 @@ export default function FileReportScreen() {
 
   const handleSubmit = () => {
     if (lat === null || lon === null) {
-      Alert.alert('Location Required', 'Tap "Locate Me" to auto-fill your GPS coordinates.');
+      Alert.alert(
+        'Location Required',
+        'Tap "Locate Me" to use GPS, or tap the map to place a pin.',
+      );
       return;
     }
     setSubmitting(true);
