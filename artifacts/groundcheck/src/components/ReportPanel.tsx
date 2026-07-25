@@ -80,8 +80,8 @@ export function ReportPanel({ pendingLocation, onSubmit, onClose }: ReportPanelP
 
   return (
     <div
-      className="fixed top-0 bottom-0 right-0 w-full sm:w-[360px] z-[1100] flex flex-col"
-      style={{ background: 'var(--nm-base)', boxShadow: '-10px 0 40px rgba(184,192,204,0.65)' }}
+      className="fixed top-[52px] bottom-0 right-0 w-full sm:w-[360px] z-[1100] flex flex-col"
+      style={{ background: 'var(--nm-base)', boxShadow: '-10px 0 40px var(--nm-dark)' }}
     >
       {/* Header */}
       <div

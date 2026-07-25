@@ -37,7 +37,7 @@ export function ChainStatus({ reports, chainLength }: ChainStatusProps) {
 
   return (
     <div
-      className="fixed top-4 right-4 z-[1100] rounded-2xl p-4 min-w-[220px]"
+      className="fixed top-[68px] right-4 z-[1100] rounded-2xl p-4 min-w-[220px]"
       style={{ background: 'var(--nm-base)', boxShadow: 'var(--nm-raised)' }}
     >
       {/* Header */}

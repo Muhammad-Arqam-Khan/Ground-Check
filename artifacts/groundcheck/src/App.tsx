@@ -71,6 +71,29 @@ export default function App() {
       html.classList.remove('dark');
       localStorage.setItem('groundcheck:theme', 'light');
     }
+
+    // Swap map tile layers to match theme
+    const map = mapRef.current;
+    if (!map || !tileBaseRef.current || !tileLabelRef.current) return;
+
+    map.removeLayer(tileBaseRef.current);
+    map.removeLayer(tileLabelRef.current);
+
+    const attribution = 'Tiles &copy; <a href="https://www.esri.com">Esri</a> | Data &copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> contributors';
+
+    tileBaseRef.current = L.tileLayer(
+      darkMode
+        ? 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}'
+        : 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}',
+      { attribution, maxZoom: 16 }
+    ).addTo(map);
+
+    tileLabelRef.current = L.tileLayer(
+      darkMode
+        ? 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}'
+        : 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Reference/MapServer/tile/{z}/{y}/{x}',
+      { maxZoom: 16, attribution: '' }
+    ).addTo(map);
   }, [darkMode]);
 
   const markersRef = useRef<Map<string, {
@@ -79,6 +102,10 @@ export default function App() {
     root: ReturnType<typeof createRoot>;
     popupEl: HTMLElement;
   }>>(new Map());
+
+  // Refs to the two base tile layers so we can swap them on theme change
+  const tileBaseRef  = useRef<L.TileLayer | null>(null);
+  const tileLabelRef = useRef<L.TileLayer | null>(null);
 
   // Init map once on mount
   useEffect(() => {
@@ -92,16 +119,21 @@ export default function App() {
 
     L.control.zoom({ position: 'topleft' }).addTo(map);
 
-    // Esri World Light Gray — matches neumorphic #e0e5ec surface, English labels, no API key
-    L.tileLayer(
-      'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}',
-      {
-        attribution: 'Tiles &copy; <a href="https://www.esri.com">Esri</a> &mdash; Esri, DeLorme, NAVTEQ | Data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-        maxZoom: 16,
-      }
+    // Esri tiles — light or dark, swapped on theme toggle
+    const isDark = localStorage.getItem('groundcheck:theme') === 'dark';
+    const attribution = 'Tiles &copy; <a href="https://www.esri.com">Esri</a> | Data &copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> contributors';
+
+    tileBaseRef.current = L.tileLayer(
+      isDark
+        ? 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}'
+        : 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}',
+      { attribution, maxZoom: 16 }
     ).addTo(map);
-    L.tileLayer(
-      'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Reference/MapServer/tile/{z}/{y}/{x}',
+
+    tileLabelRef.current = L.tileLayer(
+      isDark
+        ? 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}'
+        : 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Reference/MapServer/tile/{z}/{y}/{x}',
       { maxZoom: 16, attribution: '' }
     ).addTo(map);
 
