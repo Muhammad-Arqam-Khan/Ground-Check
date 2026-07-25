@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "GroundCheck Mobile",
-    "slug": "groundcheck-mobile",
+    "name": "GroundCheck",
+    "slug": "groundcheck",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "groundcheck-mobile",
+    "scheme": "groundcheck",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "splash": {
@@ -17,10 +17,14 @@
       "supportsTablet": false,
       "infoPlist": {
         "NSLocationWhenInUseUsageDescription": "GroundCheck uses your location to auto-fill coordinates when filing a trust report."
-      }
+      },
+      "bundleIdentifier": "com.groundcheck.app"
     },
     "android": {
-      "permissions": ["android.permission.ACCESS_FINE_LOCATION"]
+      "permissions": [
+        "android.permission.ACCESS_FINE_LOCATION"
+      ],
+      "package": "com.groundcheck.app"
     },
     "web": {
       "favicon": "./assets/images/icon.png"
