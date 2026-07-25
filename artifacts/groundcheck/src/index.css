@@ -7,39 +7,34 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-  --color-background: hsl(var(--background));
-  --color-foreground: hsl(var(--foreground));
-  --color-border: hsl(var(--border));
-  --color-input: hsl(var(--input));
-  --color-ring: hsl(var(--ring));
+  --color-background:             hsl(var(--background));
+  --color-foreground:             hsl(var(--foreground));
+  --color-border:                 hsl(var(--border));
+  --color-input:                  hsl(var(--input));
+  --color-ring:                   hsl(var(--ring));
 
-  --color-card: hsl(var(--card));
-  --color-card-foreground: hsl(var(--card-foreground));
-  --color-card-border: hsl(var(--card-border));
+  --color-card:                   hsl(var(--card));
+  --color-card-foreground:        hsl(var(--card-foreground));
+  --color-card-border:            hsl(var(--card-border));
 
-  --color-popover: hsl(var(--popover));
-  --color-popover-foreground: hsl(var(--popover-foreground));
-  --color-popover-border: hsl(var(--popover-border));
+  --color-popover:                hsl(var(--popover));
+  --color-popover-foreground:     hsl(var(--popover-foreground));
+  --color-popover-border:         hsl(var(--popover-border));
 
-  --color-primary: hsl(var(--primary));
-  --color-primary-foreground: hsl(var(--primary-foreground));
-  --color-primary-border: var(--primary-border);
+  --color-primary:                hsl(var(--primary));
+  --color-primary-foreground:     hsl(var(--primary-foreground));
 
-  --color-secondary: hsl(var(--secondary));
-  --color-secondary-foreground: hsl(var(--secondary-foreground));
-  --color-secondary-border: var(--secondary-border);
+  --color-secondary:              hsl(var(--secondary));
+  --color-secondary-foreground:   hsl(var(--secondary-foreground));
 
-  --color-muted: hsl(var(--muted));
-  --color-muted-foreground: hsl(var(--muted-foreground));
-  --color-muted-border: var(--muted-border);
+  --color-muted:                  hsl(var(--muted));
+  --color-muted-foreground:       hsl(var(--muted-foreground));
 
-  --color-accent: hsl(var(--accent));
-  --color-accent-foreground: hsl(var(--accent-foreground));
-  --color-accent-border: var(--accent-border);
+  --color-accent:                 hsl(var(--accent));
+  --color-accent-foreground:      hsl(var(--accent-foreground));
 
-  --color-destructive: hsl(var(--destructive));
+  --color-destructive:            hsl(var(--destructive));
   --color-destructive-foreground: hsl(var(--destructive-foreground));
-  --color-destructive-border: var(--destructive-border);
 
   --color-chart-1: hsl(var(--chart-1));
   --color-chart-2: hsl(var(--chart-2));
@@ -47,9 +42,9 @@
   --color-chart-4: hsl(var(--chart-4));
   --color-chart-5: hsl(var(--chart-5));
 
-  --color-sidebar: hsl(var(--sidebar));
-  --color-sidebar-foreground: hsl(var(--sidebar-foreground));
-  --color-sidebar-border: hsl(var(--sidebar-border));
+  --color-sidebar:                hsl(var(--sidebar));
+  --color-sidebar-foreground:     hsl(var(--sidebar-foreground));
+  --color-sidebar-border:         hsl(var(--sidebar-border));
 
   --font-sans: var(--app-font-sans);
   --font-mono: var(--app-font-mono);
@@ -60,129 +55,290 @@
   --radius-xl: calc(var(--radius) + 4px);
 }
 
-:root, .dark {
-  --background: 220 14% 4%;
-  --foreground: 210 20% 90%;
-  --border: 220 13% 12%;
-  
-  --card: 220 14% 7%;
-  --card-foreground: 210 20% 90%;
-  --card-border: 220 13% 14%;
-  
-  --primary: 186 100% 50%;
-  --primary-foreground: 220 14% 4%;
-  
-  --secondary: 220 14% 10%;
-  --secondary-foreground: 210 20% 70%;
-  
-  --muted: 220 13% 9%;
-  --muted-foreground: 210 10% 45%;
-  
-  --accent: 186 100% 50%;
-  --accent-foreground: 220 14% 4%;
-  
-  --destructive: 0 80% 55%;
-  --destructive-foreground: 0 0% 100%;
-  
-  --input: 220 13% 16%;
-  --ring: 186 100% 50%;
-  
-  --popover: 220 14% 7%;
-  --popover-foreground: 210 20% 90%;
-  --popover-border: 220 13% 14%;
-  
-  --sidebar: 220 14% 6%;
-  --sidebar-foreground: 210 20% 90%;
-  --sidebar-border: 220 13% 12%;
+:root {
+  /* ── neumorphic palette ───────────────────────────────────────────
+     Single molded surface: #e0e5ec. Light source top-left.
+     Accent: muted blue #7b9ccc — active states and primary action only. */
+  --background:           215 23% 90%;   /* #e0e5ec */
+  --foreground:           215 22% 28%;   /* #3c4a5c */
 
-  --chart-1: 186 100% 50%;
-  --chart-2: 142 71% 45%;
-  --chart-3: 38 92% 50%;
-  --chart-4: 0 80% 55%;
-  --chart-5: 220 14% 50%;
+  --card:                 215 23% 90%;
+  --card-foreground:      215 22% 28%;
+  --card-border:          215 17% 85%;
+
+  --popover:              215 23% 90%;
+  --popover-foreground:   215 22% 28%;
+  --popover-border:       215 17% 85%;
+
+  --primary:              213 44% 62%;   /* #7b9ccc */
+  --primary-foreground:     0  0% 100%;
+
+  --secondary:            215 17% 86%;
+  --secondary-foreground: 215 22% 35%;
+
+  --muted:                215 17% 87%;
+  --muted-foreground:     210 12% 52%;   /* #7a8ca0 */
+
+  --accent:               213 44% 62%;
+  --accent-foreground:      0  0% 100%;
+
+  --destructive:            0 65% 50%;
+  --destructive-foreground: 0  0% 100%;
+
+  --border:               215 17% 82%;
+  --input:                215 23% 90%;
+  --ring:                 213 44% 62%;
+
+  --sidebar:              215 23% 90%;
+  --sidebar-foreground:   215 22% 28%;
+  --sidebar-border:       215 17% 85%;
+
+  --chart-1: 213 44% 62%;
+  --chart-2: 142 55% 45%;
+  --chart-3:  38 80% 50%;
+  --chart-4:   0 65% 50%;
+  --chart-5: 215 20% 60%;
 
   --app-font-sans: 'Inter', sans-serif;
   --app-font-mono: 'JetBrains Mono', monospace;
-  --radius: 0.375rem;
+  --radius: 1rem;   /* 16 px */
+
+  /* ── neumorphic shadow tokens ────────────────────────────────────
+     Every shadow in the app derives from these two formulas.
+     --nm-dark  = depth (bottom-right)
+     --nm-light = highlight (top-left)                              */
+  --nm-base:     #e0e5ec;
+  --nm-light:    #ffffff;
+  --nm-dark:     #b8c0cc;
+  --nm-accent:   #7b9ccc;
+  --nm-fg:       #3c4a5c;
+  --nm-fg-muted: #7a8ca0;
+
+  --nm-raised:    8px  8px 22px var(--nm-dark), -8px  -8px 22px var(--nm-light);
+  --nm-raised-sm: 4px  4px 12px var(--nm-dark), -4px  -4px 12px var(--nm-light);
+  --nm-raised-xs: 2px  2px  7px var(--nm-dark), -2px  -2px  7px var(--nm-light);
+  --nm-inset:    inset 6px  6px 16px var(--nm-dark), inset -6px  -6px 16px var(--nm-light);
+  --nm-inset-sm: inset 3px  3px  9px var(--nm-dark), inset -3px  -3px  9px var(--nm-light);
+  --nm-inset-xs: inset 2px  2px  5px var(--nm-dark), inset -2px  -2px  5px var(--nm-light);
 }
 
 html, body, #root {
   height: 100%;
   margin: 0;
   padding: 0;
-  background-color: hsl(var(--background));
-  color: hsl(var(--foreground));
+  background: var(--nm-base);
+  color: var(--nm-fg);
 }
 
-.font-mono {
-  font-family: var(--app-font-mono) !important;
+.font-mono { font-family: var(--app-font-mono) !important; }
+
+/* ── neumorphic shadow utilities ────────────────────────────────── */
+.nm-raised    { box-shadow: var(--nm-raised); }
+.nm-raised-sm { box-shadow: var(--nm-raised-sm); }
+.nm-raised-xs { box-shadow: var(--nm-raised-xs); }
+.nm-inset     { box-shadow: var(--nm-inset); }
+.nm-inset-sm  { box-shadow: var(--nm-inset-sm); }
+.nm-inset-xs  { box-shadow: var(--nm-inset-xs); }
+
+/* ── neutral button ─────────────────────────────────────────────── */
+.nm-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  background: var(--nm-base);
+  box-shadow: var(--nm-raised-sm);
+  border: none;
+  border-radius: 12px;
+  color: var(--nm-fg);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  font-family: var(--app-font-sans);
+  cursor: pointer;
+  transition: box-shadow 0.15s ease, transform 0.1s ease;
+  outline: none;
+  user-select: none;
+}
+.nm-btn:hover  { box-shadow: var(--nm-raised); }
+.nm-btn:active { box-shadow: var(--nm-inset-sm); transform: scale(0.985); }
+.nm-btn:disabled,
+.nm-btn[disabled] { opacity: 0.4; cursor: not-allowed; box-shadow: none; pointer-events: none; }
+.nm-btn:focus-visible { outline: 2px solid var(--nm-accent); outline-offset: 2px; }
+
+/* ── accent (primary) button ────────────────────────────────────── */
+.nm-btn-accent {
+  background: var(--nm-accent);
+  color: #fff;
+  box-shadow: 5px 5px 14px rgba(100,140,200,0.45), -3px -3px 10px rgba(255,255,255,0.85);
+}
+.nm-btn-accent:hover {
+  box-shadow: 7px 7px 18px rgba(100,140,200,0.55), -4px -4px 12px rgba(255,255,255,0.9);
+}
+.nm-btn-accent:active {
+  box-shadow: inset 3px 3px 8px rgba(80,120,180,0.5), inset -2px -2px 6px rgba(150,180,220,0.3);
+}
+.nm-btn-accent:disabled,
+.nm-btn-accent[disabled] { opacity: 0.4; cursor: not-allowed; pointer-events: none; }
+
+/* ── inset form controls ────────────────────────────────────────── */
+.nm-input {
+  background: var(--nm-base);
+  box-shadow: var(--nm-inset);
+  border: none;
+  border-radius: 12px;
+  color: var(--nm-fg);
+  padding: 10px 14px;
+  font-size: 0.875rem;
+  font-family: var(--app-font-sans);
+  outline: none;
+  width: 100%;
+  box-sizing: border-box;
+  resize: none;
+  transition: box-shadow 0.15s ease;
+}
+.nm-input::placeholder { color: var(--nm-fg-muted); opacity: 1; }
+.nm-input:focus        { box-shadow: var(--nm-inset), 0 0 0 2px rgba(123,156,204,0.22); }
+
+/* Select — hide native arrow, add custom one via parent wrapper */
+.nm-select-wrap { position: relative; }
+.nm-select-wrap::after {
+  content: '▾';
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  color: var(--nm-fg-muted);
+  font-size: 11px;
+}
+select.nm-input {
+  appearance: none;
+  -webkit-appearance: none;
+  padding-right: 36px;
+  cursor: pointer;
+}
+select.nm-input option { background: #e8ecf2; color: var(--nm-fg); }
+
+/* ── range slider ───────────────────────────────────────────────── */
+.nm-slider {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 100%;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--nm-base);
+  box-shadow: var(--nm-inset-xs);
+  outline: none;
+  cursor: pointer;
+}
+.nm-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  background: var(--nm-base);
+  box-shadow: var(--nm-raised-sm);
+  cursor: pointer;
+  transition: box-shadow 0.15s;
+}
+.nm-slider::-webkit-slider-thumb:hover  { box-shadow: var(--nm-raised); }
+.nm-slider::-webkit-slider-thumb:active { box-shadow: var(--nm-inset-sm); }
+.nm-slider::-moz-range-thumb {
+  width: 22px; height: 22px;
+  border: none; border-radius: 50%;
+  background: var(--nm-base);
+  box-shadow: var(--nm-raised-sm);
+  cursor: pointer;
 }
 
-/* ── Leaflet dark theme overrides ── */
+/* ── type-tag pill ──────────────────────────────────────────────── */
+.nm-pill {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 2px 8px;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  white-space: nowrap;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.nm-pill-raised { background: var(--nm-base); box-shadow: var(--nm-raised-xs); color: var(--nm-fg-muted); }
+.nm-pill-accent { background: rgba(123,156,204,0.15); color: var(--nm-accent); }
 
-/* Popup wrapper */
+/* ── Leaflet neumorphic overrides ───────────────────────────────── */
+
 .gc-popup .leaflet-popup-content-wrapper {
-  background: hsl(220, 14%, 7%);
-  color: hsl(210, 20%, 90%);
-  border: 1px solid hsl(220, 13%, 16%);
-  border-radius: 0.5rem;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+  background: var(--nm-base);
+  color: var(--nm-fg);
+  border: none;
+  border-radius: 20px;
+  box-shadow: var(--nm-raised);
   padding: 0;
+  overflow: hidden;
 }
-
 .gc-popup .leaflet-popup-content {
   margin: 0;
   width: auto !important;
 }
-
-/* Popup tip (arrow) */
 .gc-popup .leaflet-popup-tip-container .leaflet-popup-tip {
-  background: hsl(220, 14%, 7%);
+  background: var(--nm-base);
   box-shadow: none;
 }
-
-/* Close button */
 .gc-popup .leaflet-popup-close-button {
-  color: hsl(210, 10%, 50%) !important;
+  color: var(--nm-fg-muted) !important;
   font-size: 18px !important;
-  top: 6px !important;
-  right: 8px !important;
+  font-weight: 300 !important;
+  top: 8px !important;
+  right: 10px !important;
 }
 .gc-popup .leaflet-popup-close-button:hover {
-  color: hsl(186, 100%, 50%) !important;
+  color: var(--nm-accent) !important;
+  background: none !important;
 }
 
 /* Zoom controls */
-.leaflet-control-zoom a {
-  background: hsl(220, 14%, 7%) !important;
-  color: hsl(210, 20%, 90%) !important;
-  border-color: hsl(220, 13%, 16%) !important;
+.leaflet-control-zoom {
+  border: none !important;
+  border-radius: 16px !important;
+  overflow: hidden;
+  box-shadow: var(--nm-raised) !important;
 }
+.leaflet-control-zoom a {
+  background: var(--nm-base) !important;
+  color: var(--nm-fg) !important;
+  border: none !important;
+  border-bottom: 1px solid rgba(184,192,204,0.3) !important;
+  width: 36px !important;
+  height: 36px !important;
+  line-height: 36px !important;
+  font-size: 18px !important;
+  font-weight: 300 !important;
+  transition: color 0.15s, background 0.15s;
+}
+.leaflet-control-zoom a:last-child { border-bottom: none !important; }
 .leaflet-control-zoom a:hover {
-  background: hsl(220, 14%, 12%) !important;
-  color: hsl(186, 100%, 50%) !important;
+  background: #d4d9e3 !important;
+  color: var(--nm-accent) !important;
 }
 
 /* Attribution */
 .leaflet-control-attribution {
-  background: rgba(10, 12, 16, 0.75) !important;
-  color: hsl(210, 10%, 45%) !important;
+  background: rgba(224,229,236,0.88) !important;
+  color: var(--nm-fg-muted) !important;
   font-size: 10px !important;
+  border: none !important;
+  border-radius: 8px 0 0 0 !important;
+  box-shadow: none !important;
 }
-.leaflet-control-attribution a {
-  color: hsl(186, 100%, 50%) !important;
-}
+.leaflet-control-attribution a { color: var(--nm-accent) !important; }
 
-/* Prevent Leaflet default icon from showing as broken image */
-.leaflet-marker-icon.leaflet-zoom-animated {
-  will-change: transform;
-}
+.leaflet-marker-icon.leaflet-zoom-animated { will-change: transform; }
 
 @layer base {
-  * {
-    @apply border-border;
-  }
+  * { @apply border-border; }
   body {
-    @apply font-sans antialiased bg-background text-foreground;
+    @apply font-sans antialiased;
+    background: var(--nm-base);
+    color: var(--nm-fg);
   }
 }

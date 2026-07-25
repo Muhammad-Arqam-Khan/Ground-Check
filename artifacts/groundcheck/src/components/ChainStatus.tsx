@@ -7,11 +7,11 @@ interface ChainStatusProps {
   chainLength: number;
 }
 
-type VerifyState = 
+type VerifyState =
   | { status: 'idle' }
   | { status: 'loading' }
-  | { status: 'success', count: number }
-  | { status: 'error', brokenAt: number, reportId: string, expected: string, got: string };
+  | { status: 'success'; count: number }
+  | { status: 'error'; brokenAt: number; reportId: string; expected: string; got: string };
 
 export function ChainStatus({ reports, chainLength }: ChainStatusProps) {
   const [verifyState, setVerifyState] = useState<VerifyState>({ status: 'idle' });
@@ -22,67 +22,105 @@ export function ChainStatus({ reports, chainLength }: ChainStatusProps) {
     if (result.ok) {
       setVerifyState({ status: 'success', count: chainLength });
     } else {
-      setVerifyState({ 
-        status: 'error', 
-        brokenAt: result.brokenAt, 
-        reportId: result.reportId, 
-        expected: result.expected, 
-        got: result.got 
+      setVerifyState({
+        status: 'error',
+        brokenAt: result.brokenAt,
+        reportId: result.reportId,
+        expected: result.expected,
+        got: result.got,
       });
     }
   };
 
-  const isIntact = verifyState.status === 'success' && chainLength > 0;
+  const isIntact      = verifyState.status === 'success' && chainLength > 0;
   const isCompromised = verifyState.status === 'error';
-  const isUnverified = verifyState.status === 'idle' || (verifyState.status === 'success' && chainLength === 0);
 
   return (
-    <div className="fixed top-4 right-4 z-[1100] bg-card border border-border rounded-lg p-3 shadow-lg min-w-[240px]">
-      <div className="flex items-center justify-between mb-2">
-        <div className="text-xs font-bold text-muted-foreground tracking-wider font-mono">
-          CHAIN: {chainLength} LINKS
+    <div
+      className="fixed top-4 right-4 z-[1100] rounded-2xl p-4 min-w-[220px]"
+      style={{ background: 'var(--nm-base)', boxShadow: 'var(--nm-raised)' }}
+    >
+      {/* Header */}
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-2">
+          {/* Chain link icon */}
+          <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
+            <circle cx="2.5"  cy="7.5" r="2"   stroke="var(--nm-fg-muted)" strokeWidth="1.3"/>
+            <circle cx="7.5"  cy="7.5" r="2"   stroke="var(--nm-fg-muted)" strokeWidth="1.3"/>
+            <circle cx="12.5" cy="7.5" r="2"   stroke="var(--nm-fg-muted)" strokeWidth="1.3"/>
+            <line x1="4.5"  y1="7.5" x2="5.5"  y2="7.5" stroke="var(--nm-fg-muted)" strokeWidth="1.3"/>
+            <line x1="9.5"  y1="7.5" x2="10.5" y2="7.5" stroke="var(--nm-fg-muted)" strokeWidth="1.3"/>
+          </svg>
+          <span
+            className="text-[10px] font-semibold tracking-widest uppercase"
+            style={{ color: 'var(--nm-fg-muted)', fontFamily: 'var(--app-font-mono)' }}
+          >
+            Chain
+          </span>
         </div>
-        
-        <div data-testid="badge-chain-status" className="flex items-center">
+
+        <div data-testid="badge-chain-status" className="flex items-center gap-1.5">
+          <span className="text-sm font-semibold tabular-nums" style={{ color: 'var(--nm-fg)' }}>
+            {chainLength}
+          </span>
+          <span className="text-[10px]" style={{ color: 'var(--nm-fg-muted)' }}>links</span>
+
           {isIntact && (
-            <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-green-500/20 text-green-400 border border-green-500/30">
+            <span className="ml-1 text-[9px] font-bold px-2 py-0.5 rounded-full"
+                  style={{ background: 'rgba(74,185,100,0.15)', color: '#3a9a58' }}>
               INTACT
             </span>
           )}
           {isCompromised && (
-            <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-red-500/20 text-red-400 border border-red-500/30 animate-pulse">
+            <span className="ml-1 text-[9px] font-bold px-2 py-0.5 rounded-full animate-pulse"
+                  style={{ background: 'rgba(220,60,60,0.12)', color: '#c04040' }}>
               COMPROMISED
-            </span>
-          )}
-          {isUnverified && (
-            <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-gray-500/20 text-gray-400 border border-gray-500/30">
-              UNVERIFIED
             </span>
           )}
         </div>
       </div>
 
+      {/* Verify button */}
       <button
         onClick={handleVerify}
         disabled={verifyState.status === 'loading' || chainLength === 0}
         data-testid="button-verify-chain"
-        className="w-full py-1.5 px-3 bg-secondary hover:bg-secondary/80 border border-border rounded text-xs font-semibold transition-colors disabled:opacity-50 flex items-center justify-center"
+        className="nm-btn w-full py-2 px-4 text-xs"
+        style={{ color: 'var(--nm-accent)' }}
       >
-        {verifyState.status === 'loading' ? 'Verifying...' : 'Verify Chain'}
+        {verifyState.status === 'loading' ? 'Verifying…' : 'Verify chain'}
       </button>
 
+      {/* Results */}
       {verifyState.status === 'success' && (
-        <div data-testid="text-verify-result" className="mt-2 text-[10px] font-mono text-green-400 leading-tight">
-          ✓ Chain intact — {verifyState.count} links verified
+        <div
+          data-testid="text-verify-result"
+          className="mt-3 px-3 py-2 rounded-xl text-[10px] leading-snug"
+          style={{
+            background: 'rgba(74,185,100,0.10)',
+            color: '#3a9a58',
+            boxShadow: 'var(--nm-inset-xs)',
+            fontFamily: 'var(--app-font-mono)',
+          }}
+        >
+          ✓ {verifyState.count} links verified — intact
         </div>
       )}
-
       {verifyState.status === 'error' && (
-        <div data-testid="text-verify-result" className="mt-2 text-[10px] font-mono text-red-400 leading-tight">
-          <div className="font-bold mb-1">✗ Broken at link #{verifyState.brokenAt}</div>
-          <div className="text-muted-foreground break-all mb-1">ID: {verifyState.reportId}</div>
-          <div className="break-all opacity-80">Exp: {verifyState.expected.substring(0, 16)}...</div>
-          <div className="break-all opacity-80">Got: {verifyState.got.substring(0, 16)}...</div>
+        <div
+          data-testid="text-verify-result"
+          className="mt-3 px-3 py-2 rounded-xl text-[10px] leading-snug space-y-0.5"
+          style={{
+            background: 'rgba(220,60,60,0.08)',
+            color: '#c04040',
+            boxShadow: 'var(--nm-inset-xs)',
+            fontFamily: 'var(--app-font-mono)',
+          }}
+        >
+          <div className="font-bold">✗ Broken at link #{verifyState.brokenAt}</div>
+          <div className="opacity-70 break-all">ID: {verifyState.reportId}</div>
+          <div className="opacity-60 break-all">Exp: {verifyState.expected.substring(0, 16)}…</div>
+          <div className="opacity-60 break-all">Got: {verifyState.got.substring(0, 16)}…</div>
         </div>
       )}
     </div>

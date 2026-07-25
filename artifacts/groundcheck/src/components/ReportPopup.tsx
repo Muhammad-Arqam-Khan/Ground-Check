@@ -7,89 +7,121 @@ interface ReportPopupProps {
 }
 
 export function ReportPopup({ report }: ReportPopupProps) {
-  const breakdown = getScoreBreakdown(report);
-  const color = scoreToColor(report.score);
-  const label = scoreToLabel(report.score);
-  
-  const chain = getChain();
-  const link = chain.find(l => l.id === report.id);
-  const hashPrefix = link ? link.hash.substring(0, 12) : 'pending...';
+  const breakdown  = getScoreBreakdown(report);
+  const color      = scoreToColor(report.score);
+  const label      = scoreToLabel(report.score);
+
+  const chain      = getChain();
+  const link       = chain.find(l => l.id === report.id);
+  const hashPrefix = link ? link.hash.substring(0, 10) : 'pending';
 
   const handleVote = (dir: 'up' | 'down') => {
     window.dispatchEvent(new CustomEvent('groundcheck:vote', { detail: { id: report.id, dir } }));
   };
 
+  const scoreColor = report.flagged ? '#e07a30' : color;
+
   return (
-    <div className="p-1 min-w-[220px] text-foreground font-sans">
-      <div className="flex items-center justify-between mb-2 pb-2 border-b border-border/50">
-        <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+    <div
+      style={{
+        background: 'var(--nm-base)',
+        padding: '16px 18px',
+        minWidth: 230,
+        maxWidth: 280,
+        fontFamily: 'var(--app-font-sans)',
+      }}
+    >
+      {/* Category + flag */}
+      <div className="flex items-center justify-between mb-3">
+        <span
+          className="text-[9px] font-semibold tracking-widest uppercase"
+          style={{ color: 'var(--nm-fg-muted)' }}
+        >
           {report.category}
         </span>
         {report.flagged && (
-          <span className="text-[10px] font-bold text-orange-500 bg-orange-500/10 px-1.5 py-0.5 rounded flex items-center gap-1">
-            ⚠ UNVERIFIED — FLAGGED
+          <span
+            className="text-[9px] font-bold px-2 py-0.5 rounded-full"
+            style={{ background: 'rgba(224,122,48,0.12)', color: '#e07a30' }}
+          >
+            ⚠ FLAGGED
           </span>
         )}
       </div>
 
-      <div className="mb-3">
-        <div className="flex items-baseline gap-2">
-          <span 
-            className="text-3xl font-mono font-bold"
-            style={{ color: report.flagged ? '#f97316' : color }}
-          >
-            {report.score}
-          </span>
-          <span 
-            className="text-xs font-bold"
-            style={{ color: report.flagged ? '#f97316' : color }}
-          >
-            {report.flagged ? 'FLAGGED' : label}
-          </span>
-        </div>
+      {/* Score */}
+      <div className="flex items-baseline gap-2 mb-4">
+        <span
+          className="text-4xl font-bold tabular-nums"
+          style={{ color: scoreColor, fontFamily: 'var(--app-font-mono)', lineHeight: 1 }}
+        >
+          {report.score}
+        </span>
+        <span className="text-xs font-semibold" style={{ color: scoreColor }}>
+          {report.flagged ? 'FLAGGED' : label}
+        </span>
       </div>
 
+      {/* Score breakdown — inset data block */}
       {!report.flagged && (
-        <div className="mb-3 space-y-1 text-xs border border-border bg-black/20 rounded p-2 font-mono">
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">OSM match</span>
-            <span>+{breakdown.osmPoints}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">Community</span>
-            <span>+{breakdown.communityPoints}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">Baseline</span>
-            <span>+{breakdown.basePoints}</span>
-          </div>
+        <div
+          className="rounded-xl px-3 py-2.5 mb-3 space-y-1.5"
+          style={{ boxShadow: 'var(--nm-inset-sm)', background: 'var(--nm-base)' }}
+        >
+          {[
+            { l: 'OSM match',  v: breakdown.osmPoints },
+            { l: 'Community',  v: breakdown.communityPoints },
+            { l: 'Baseline',   v: breakdown.basePoints },
+          ].map(({ l, v }) => (
+            <div
+              key={l}
+              className="flex justify-between text-[11px]"
+              style={{ fontFamily: 'var(--app-font-mono)' }}
+            >
+              <span style={{ color: 'var(--nm-fg-muted)' }}>{l}</span>
+              <span style={{ color: 'var(--nm-fg)', fontWeight: 600 }}>+{v}</span>
+            </div>
+          ))}
         </div>
       )}
 
-      <p className="text-sm mb-3 text-card-foreground break-words">
-        {report.desc || <span className="text-muted-foreground italic">No description</span>}
-      </p>
+      {/* Description */}
+      {report.desc && (
+        <p className="text-xs mb-3 leading-relaxed" style={{ color: 'var(--nm-fg)' }}>
+          {report.desc}
+        </p>
+      )}
 
-      <div className="flex items-center justify-between mt-3 pt-3 border-t border-border/50">
+      {/* Votes + hash */}
+      <div
+        className="flex items-center justify-between pt-3"
+        style={{ borderTop: '1px solid rgba(184,192,204,0.35)' }}
+      >
         <div className="flex gap-2">
           <button
             onClick={() => handleVote('up')}
             data-testid={`button-upvote-${report.id}`}
-            className="flex items-center gap-1 px-2 py-1 rounded bg-secondary hover:bg-secondary/80 text-xs transition-colors"
+            className="nm-btn px-3 py-1.5 rounded-xl text-[11px] font-medium"
+            style={{ color: '#4ab964' }}
           >
-            <span className="text-green-500">▲</span> {report.up}
+            ▲ {report.up}
           </button>
           <button
             onClick={() => handleVote('down')}
             data-testid={`button-downvote-${report.id}`}
-            className="flex items-center gap-1 px-2 py-1 rounded bg-secondary hover:bg-secondary/80 text-xs transition-colors"
+            className="nm-btn px-3 py-1.5 rounded-xl text-[11px] font-medium"
+            style={{ color: '#dc3c3c' }}
           >
-            <span className="text-red-500">▼</span> {report.down}
+            ▼ {report.down}
           </button>
         </div>
-        
-        <div className="text-[10px] font-mono text-muted-foreground" title={link?.hash}>
-          Hash: {hashPrefix}...
+
+        <div
+          className="text-[9px]"
+          style={{ color: 'var(--nm-dark)', fontFamily: 'var(--app-font-mono)' }}
+          title={link?.hash}
+        >
+          #{hashPrefix}
         </div>
       </div>
     </div>

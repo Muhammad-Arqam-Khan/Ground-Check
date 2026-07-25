@@ -61,17 +61,16 @@ export default function App() {
 
     L.control.zoom({ position: 'topleft' }).addTo(map);
 
-    // Esri World Dark Gray — dark tiles, English labels, no API key needed
+    // Esri World Light Gray — matches neumorphic #e0e5ec surface, English labels, no API key
     L.tileLayer(
-      'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}',
+      'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}',
       {
         attribution: 'Tiles &copy; <a href="https://www.esri.com">Esri</a> &mdash; Esri, DeLorme, NAVTEQ | Data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
         maxZoom: 16,
       }
     ).addTo(map);
-    // English label overlay
     L.tileLayer(
-      'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}',
+      'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Reference/MapServer/tile/{z}/{y}/{x}',
       { maxZoom: 16, attribution: '' }
     ).addTo(map);
 
@@ -173,7 +172,7 @@ export default function App() {
   }, [refreshHeatmap, updateMarkerVisuals]);
 
   return (
-    <div style={{ position: 'relative', width: '100vw', height: '100vh', background: '#0a0c10' }}>
+    <div style={{ position: 'relative', width: '100vw', height: '100vh', background: 'var(--nm-base)' }}>
       <div
         ref={mapContainer}
         data-testid="map-container"
