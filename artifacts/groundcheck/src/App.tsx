@@ -61,14 +61,19 @@ export default function App() {
 
     L.control.zoom({ position: 'topleft' }).addTo(map);
 
-    // CartoDB Dark Matter — dark OSM tiles, no API key needed
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-      attribution:
-        '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors ' +
-        '&copy; <a href="https://carto.com/attributions">CARTO</a>',
-      subdomains: 'abcd',
-      maxZoom: 20,
-    }).addTo(map);
+    // Esri World Dark Gray — dark tiles, English labels, no API key needed
+    L.tileLayer(
+      'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}',
+      {
+        attribution: 'Tiles &copy; <a href="https://www.esri.com">Esri</a> &mdash; Esri, DeLorme, NAVTEQ | Data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+        maxZoom: 16,
+      }
+    ).addTo(map);
+    // English label overlay
+    L.tileLayer(
+      'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}',
+      { maxZoom: 16, attribution: '' }
+    ).addTo(map);
 
     // Heat layer (leaflet.heat)
     heatRef.current = L.heatLayer([], {

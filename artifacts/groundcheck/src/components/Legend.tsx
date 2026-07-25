@@ -1,8 +1,6 @@
-import React from 'react';
-
 export function Legend() {
   return (
-    <div className="fixed bottom-8 left-4 z-10 bg-card border border-border rounded-lg p-3 shadow-lg">
+    <div className="fixed bottom-8 left-4 z-[1100] bg-card border border-border rounded-lg p-3 shadow-lg">
       <h3 className="text-xs font-bold text-muted-foreground mb-2 font-mono">TRUST SCORE</h3>
       <div className="space-y-2 text-xs">
         <div className="flex items-center gap-2">

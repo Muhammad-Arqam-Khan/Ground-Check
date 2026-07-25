@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import type { Report } from '../lib/types';
 import { verifyChain } from '../lib/chain';
 
@@ -37,7 +37,7 @@ export function ChainStatus({ reports, chainLength }: ChainStatusProps) {
   const isUnverified = verifyState.status === 'idle' || (verifyState.status === 'success' && chainLength === 0);
 
   return (
-    <div className="fixed top-4 right-4 z-10 bg-card border border-border rounded-lg p-3 shadow-lg min-w-[240px]">
+    <div className="fixed top-4 right-4 z-[1100] bg-card border border-border rounded-lg p-3 shadow-lg min-w-[240px]">
       <div className="flex items-center justify-between mb-2">
         <div className="text-xs font-bold text-muted-foreground tracking-wider font-mono">
           CHAIN: {chainLength} LINKS

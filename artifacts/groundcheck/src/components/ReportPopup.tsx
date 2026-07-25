@@ -1,4 +1,3 @@
-import React from 'react';
 import type { Report } from '../lib/types';
 import { scoreToColor, scoreToLabel, getScoreBreakdown } from '../lib/scoring';
 import { getChain } from '../lib/chain';

@@ -77,7 +77,7 @@ export function ReportPanel({ pendingLocation, onSubmit, onClose }: ReportPanelP
   };
 
   return (
-    <div className="fixed top-0 bottom-0 right-0 w-full sm:w-[340px] bg-card border-l border-border z-10 p-6 flex flex-col shadow-2xl transition-transform duration-200 ease-out transform translate-x-0">
+    <div className="fixed top-0 bottom-0 right-0 w-full sm:w-[340px] bg-card border-l border-border z-[1100] p-6 flex flex-col shadow-2xl transition-transform duration-200 ease-out transform translate-x-0">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-lg font-semibold text-card-foreground">New Report</h2>
         <button 
