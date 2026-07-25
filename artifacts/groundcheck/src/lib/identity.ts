@@ -129,6 +129,14 @@ export function recordSignupAttempt(): void {
 }
 
 // ── Persistence ──────────────────────────────────────────────────────────────
+//
+// Security note: AES-GCM encrypted fields (encryptedCnic, encryptedImage) are
+// stored alongside their decryption key (keyJwk) in the same localStorage entry.
+// This is obfuscation, not encryption at rest — anyone with access to the
+// browser's localStorage can decrypt them.  For a production deployment, the key
+// should be stored server-side and the ciphertext fetched only after
+// server-side authentication.  This architecture is accepted for the hackathon
+// demo where there is no backend.
 
 function loadIdentities(): IdentityRecord[] {
   try {
@@ -172,4 +180,22 @@ export function setSession(token: string): void {
 
 export function clearSession(): void {
   try { localStorage.removeItem(LS_SESSION); } catch {}
+}
+
+// ── Data deletion ─────────────────────────────────────────────────────────────
+// Removes all data belonging to a single identity and clears the session if it
+// belonged to that identity.  This is the user-facing "delete my account" path.
+
+export function deleteMyData(id: string): void {
+  const list   = loadIdentities();
+  const target = list.find(i => i.id === id);
+  if (!target) return;
+  // Clear session if this identity owns the active session token
+  try {
+    const token = localStorage.getItem(LS_SESSION);
+    if (token && target.sessionToken === token) {
+      localStorage.removeItem(LS_SESSION);
+    }
+  } catch {}
+  saveIdentities(list.filter(i => i.id !== id));
 }

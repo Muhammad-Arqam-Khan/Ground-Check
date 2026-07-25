@@ -1,16 +1,25 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { getSession, clearSession } from '../lib/identity';
+import { getSession, clearSession, deleteMyData } from '../lib/identity';
 
 export function IdentityBadge() {
   const navigate  = useNavigate();
   const identity  = getSession();
-  const [open, setOpen] = useState(false);
+  const [open, setOpen]           = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
 
   const handleSignOut = () => {
     clearSession();
     setOpen(false);
     navigate('/login');
+  };
+
+  const handleDeleteAccount = () => {
+    if (!identity) return;
+    deleteMyData(identity.id);
+    setOpen(false);
+    setConfirmDelete(false);
+    navigate('/signup');
   };
 
   if (!identity) {
@@ -104,6 +113,41 @@ export function IdentityBadge() {
             >
               Sign out
             </button>
+
+            {!confirmDelete ? (
+              <button
+                className="nm-btn w-full py-2 text-xs mt-2"
+                style={{ color: 'var(--nm-dark)' }}
+                onClick={() => setConfirmDelete(true)}
+              >
+                Delete my account
+              </button>
+            ) : (
+              <div
+                className="rounded-xl px-3 py-2 mt-2"
+                style={{ boxShadow: 'var(--nm-inset-xs)', background: 'var(--nm-base)' }}
+              >
+                <p style={{ fontSize: 11, color: 'var(--nm-fg)', marginBottom: 8, lineHeight: 1.4 }}>
+                  This removes your name, CNIC, and all stored identity data permanently. Reports you filed remain.
+                </p>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <button
+                    className="nm-btn py-1.5 text-xs flex-1"
+                    style={{ color: '#c04040', fontWeight: 600 }}
+                    onClick={handleDeleteAccount}
+                  >
+                    Yes, delete
+                  </button>
+                  <button
+                    className="nm-btn py-1.5 text-xs flex-1"
+                    style={{ color: 'var(--nm-fg-muted)' }}
+                    onClick={() => setConfirmDelete(false)}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </>
       )}
