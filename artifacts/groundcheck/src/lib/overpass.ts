@@ -29,15 +29,22 @@ function haversineM(lat1: number, lon1: number, lat2: number, lon2: number): num
 }
 
 export async function queryOverpass(
-  lat: number, lon: number, radius: number, category: ReportCategory
+  lat: number, lon: number, radius: number, category: ReportCategory,
+  externalSignal?: AbortSignal,
 ): Promise<OsmResult> {
+  // Combine a 12s timeout with any external abort signal
+  const timeout = AbortSignal.timeout(12000);
+  const signal = externalSignal
+    ? AbortSignal.any([timeout, externalSignal])
+    : timeout;
+
   try {
     const query = buildQuery(lat, lon, radius, category);
     const response = await fetch(OVERPASS_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: 'data=' + encodeURIComponent(query),
-      signal: AbortSignal.timeout(12000),
+      signal,
     });
     if (!response.ok) return { matched: null, nearestM: null, count: 0 };
     const data = await response.json();

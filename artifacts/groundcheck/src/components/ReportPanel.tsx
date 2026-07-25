@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import type { ReportCategory, OsmResult, Report } from '../lib/types';
-import { queryOverpass, debounce } from '../lib/overpass';
+import { queryOverpass } from '../lib/overpass';
 import { SESSION_ID } from '../lib/session';
 
 interface ReportPanelProps {
@@ -16,23 +16,41 @@ export function ReportPanel({ pendingLocation, onSubmit, onClose }: ReportPanelP
   const [osmResult, setOsmResult] = useState<OsmResult | null>(null);
   const [loadingOsm, setLoadingOsm] = useState<boolean>(true);
 
-  // Use ref to keep track of latest pendingLocation for debounced query without triggering loops
-  const locRef = useRef(pendingLocation);
-  locRef.current = pendingLocation;
+  const timerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const abortRef = useRef<AbortController | undefined>(undefined);
 
   useEffect(() => {
     if (!pendingLocation) return;
-    
+
     setLoadingOsm(true);
     setOsmResult(null);
 
-    const debouncedQuery = debounce(async (lat: number, lon: number, r: number, cat: ReportCategory) => {
-      const res = await queryOverpass(lat, lon, r, cat);
-      setOsmResult(res);
-      setLoadingOsm(false);
+    // Clear any pending debounce timer
+    clearTimeout(timerRef.current);
+    // Abort any in-flight request
+    abortRef.current?.abort();
+
+    const controller = new AbortController();
+    abortRef.current = controller;
+
+    timerRef.current = setTimeout(async () => {
+      const res = await queryOverpass(
+        pendingLocation.lat,
+        pendingLocation.lon,
+        radius,
+        category,
+        controller.signal,
+      );
+      if (!controller.signal.aborted) {
+        setOsmResult(res);
+        setLoadingOsm(false);
+      }
     }, 300);
 
-    debouncedQuery(pendingLocation.lat, pendingLocation.lon, radius, category);
+    return () => {
+      clearTimeout(timerRef.current);
+      controller.abort();
+    };
   }, [category, radius, pendingLocation]);
 
   const handleSubmit = (e: React.FormEvent) => {
