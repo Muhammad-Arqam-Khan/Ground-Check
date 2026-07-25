@@ -32,7 +32,7 @@ export function ReportPopup({ report }: ReportPopupProps) {
       }}
     >
       {/* Category + flag */}
-      <div className="flex items-center justify-between mb-3">
+      <div className="flex items-center justify-between mb-1">
         <span
           className="text-[9px] font-semibold tracking-widest uppercase"
           style={{ color: 'var(--nm-fg-muted)' }}
@@ -45,6 +45,34 @@ export function ReportPopup({ report }: ReportPopupProps) {
             style={{ background: 'rgba(224,122,48,0.12)', color: '#e07a30' }}
           >
             ⚠ FLAGGED
+          </span>
+        )}
+      </div>
+
+      {/* Reporter status badge */}
+      <div className="mb-3">
+        {report.reporterStatus === 'verified' && (
+          <span
+            className="inline-flex items-center gap-1 text-[9px] font-semibold px-2 py-0.5 rounded-full"
+            style={{ background: 'rgba(34,197,94,0.12)', color: '#16a34a' }}
+          >
+            ✓ Verified Reporter
+          </span>
+        )}
+        {report.reporterStatus === 'flagged' && (
+          <span
+            className="inline-flex items-center gap-1 text-[9px] font-semibold px-2 py-0.5 rounded-full"
+            style={{ background: 'rgba(224,122,48,0.10)', color: '#e07a30' }}
+          >
+            ⚠ Unverified Reporter
+          </span>
+        )}
+        {(!report.reporterStatus || report.reporterStatus === 'guest') && (
+          <span
+            className="inline-flex items-center gap-1 text-[9px] font-semibold px-2 py-0.5 rounded-full"
+            style={{ background: 'rgba(184,192,204,0.18)', color: 'var(--nm-fg-muted)' }}
+          >
+            Anonymous
           </span>
         )}
       </div>

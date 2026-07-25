@@ -14,18 +14,26 @@ function communityPoints(up: number, down: number): number {
   return Math.max(0, Math.min(40, Math.round(raw)));
 }
 
+function reporterCredibilityPoints(report: Report): number {
+  if (report.reporterStatus === 'verified') return 10;
+  if (report.reporterStatus === 'flagged')  return -5;
+  return 0; // guest or undefined
+}
+
 export function computeScore(report: Report): number {
   if (report.flagged) return 0; // excluded from scoring
   const o = osmPoints(report.osm);
   const c = communityPoints(report.up, report.down);
-  return o + c + 20; // basePoints = 20
+  const r = reporterCredibilityPoints(report);
+  return Math.min(100, o + c + 20 + r); // basePoints = 20, cap at 100
 }
 
 export function getScoreBreakdown(report: Report): ScoreBreakdown {
   if (report.flagged) return { osmPoints: 0, communityPoints: 0, basePoints: 20, total: 0 };
   const o = osmPoints(report.osm);
   const c = communityPoints(report.up, report.down);
-  return { osmPoints: o, communityPoints: c, basePoints: 20, total: o + c + 20 };
+  const r = reporterCredibilityPoints(report);
+  return { osmPoints: o, communityPoints: c, basePoints: 20, total: Math.min(100, o + c + 20 + r) };
 }
 
 export function scoreToColor(score: number): string {

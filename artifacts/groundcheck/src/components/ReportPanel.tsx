@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, FormEvent } from 'react';
 import type { ReportCategory, OsmResult, Report } from '../lib/types';
 import { queryOverpass } from '../lib/overpass';
 import { SESSION_ID } from '../lib/session';
+import { getSession } from '../lib/identity';
 
 interface ReportPanelProps {
   pendingLocation: { lat: number; lon: number } | null;
@@ -57,6 +58,9 @@ export function ReportPanel({ pendingLocation, onSubmit, onClose }: ReportPanelP
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
     if (!pendingLocation || !osmResult) return;
+    const identity = getSession();
+    const reporterStatus = identity ? identity.status : 'guest';
+    const reporterIdentityId = identity ? identity.id : undefined;
     onSubmit({
       id: crypto.randomUUID(),
       category, desc,
@@ -69,6 +73,8 @@ export function ReportPanel({ pendingLocation, onSubmit, onClose }: ReportPanelP
       osm: osmResult,
       flagged: false,
       score: 0,
+      reporterStatus,
+      reporterIdentityId,
     });
   };
 

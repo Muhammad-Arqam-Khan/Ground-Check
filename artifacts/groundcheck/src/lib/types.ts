@@ -27,6 +27,10 @@ export interface Report {
   osm: OsmResult;
   flagged: boolean;
   score: number;
+  /** Identity status of the reporter at submission time */
+  reporterStatus?: 'verified' | 'flagged' | 'guest';
+  /** Identity ID of the reporter (undefined for guest) */
+  reporterIdentityId?: string;
 }
 
 export interface ChainLink {
