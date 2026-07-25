@@ -1,8 +1,87 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { getAllIdentities } from '../lib/identity';
 import { getChain } from '../lib/chain';
 
+// TODO: move to an environment variable in production
+const ADMIN_PASSPHRASE = 'groundcheck2026';
+
+const SESSION_KEY = 'gc_admin_auth';
+
+function PassphraseGate({ onAuth }: { onAuth: () => void }) {
+  const [value, setValue] = useState('');
+  const [error, setError] = useState(false);
+
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (value === ADMIN_PASSPHRASE) {
+      sessionStorage.setItem(SESSION_KEY, '1');
+      onAuth();
+    } else {
+      setError(true);
+      setValue('');
+    }
+  }
+
+  return (
+    <div
+      style={{
+        minHeight: '100vh',
+        background: 'var(--nm-base)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '24px',
+      }}
+    >
+      <div
+        className="rounded-2xl p-8"
+        style={{
+          background: 'var(--nm-base)',
+          boxShadow: 'var(--nm-raised)',
+          width: '100%',
+          maxWidth: 360,
+        }}
+      >
+        <h1 className="nm-heading mb-1" style={{ fontSize: 18 }}>Admin Access</h1>
+        <p className="nm-sub mb-6" style={{ fontSize: 13 }}>Enter the passphrase to continue.</p>
+
+        <form onSubmit={handleSubmit}>
+          <input
+            className="nm-input w-full mb-4"
+            type="password"
+            placeholder="Passphrase"
+            value={value}
+            autoFocus
+            onChange={e => { setValue(e.target.value); setError(false); }}
+          />
+
+          {error && (
+            <p style={{ fontSize: 12, color: '#e05050', marginBottom: 12 }}>
+              Incorrect passphrase. Please try again.
+            </p>
+          )}
+
+          <button
+            type="submit"
+            className="nm-btn-accent w-full py-2"
+            style={{ width: '100%' }}
+          >
+            Enter
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+}
+
 export function Admin() {
+  const [authed, setAuthed] = useState(() => sessionStorage.getItem(SESSION_KEY) === '1');
+
+  if (!authed) {
+    return <PassphraseGate onAuth={() => setAuthed(true)} />;
+  }
+
   const identities = getAllIdentities().sort((a, b) => b.timestamp - a.timestamp);
   const chain      = getChain();
 
