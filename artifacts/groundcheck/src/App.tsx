@@ -39,8 +39,10 @@ export default function App() {
   const heatRef = useRef<L.HeatLayer | null>(null);
 
   const [pendingLocation, setPendingLocation] = useState<{ lat: number; lon: number } | null>(null);
-  const [chainLength, setChainLength] = useState(0);
-  const [, setTick] = useState(0); // force re-render for ChainStatus
+  // Initialize from persisted chain so count survives refresh
+  const [chainLength, setChainLength] = useState(() => getChainLength());
+  // Seed tick from loaded reports so the overlay reflects persisted data immediately
+  const [, setTick] = useState(() => getAllReports().length);
 
   const markersRef = useRef<Map<string, {
     marker: L.Marker;
@@ -88,8 +90,36 @@ export default function App() {
       },
     }).addTo(map);
 
+    // ── Re-hydrate persisted reports ──────────────────────────────────────
+    const persisted = getAllReports();
+    for (const report of persisted) {
+      const popupEl = document.createElement('div');
+      const root = createRoot(popupEl);
+      root.render(<ReportPopup report={report} />);
+
+      const popup = L.popup({
+        className: 'gc-popup',
+        minWidth: 240,
+        maxWidth: 300,
+        closeButton: true,
+        autoPan: true,
+      }).setContent(popupEl);
+
+      const marker = L.marker([report.lat, report.lon], {
+        icon: createLeafletIcon(report.score, report.flagged),
+      });
+      marker.on('click', (e: L.LeafletMouseEvent) => { L.DomEvent.stopPropagation(e); });
+      marker.bindPopup(popup).addTo(map);
+
+      markersRef.current.set(report.id, { marker, popup, root, popupEl });
+    }
+    if (persisted.length > 0) {
+      heatRef.current?.setLatLngs(buildHeatmapPoints());
+    }
+    // ─────────────────────────────────────────────────────────────────────
+
     // Map click → start a report (only on bare map, not on markers)
-    map.on('click', (e) => {
+    map.on('click', (e: L.LeafletMouseEvent) => {
       setPendingLocation({ lat: e.latlng.lat, lon: e.latlng.lng });
     });
 
@@ -118,9 +148,11 @@ export default function App() {
     recordAction();
     report.score = computeScore(report);
 
+    // Add to store (persisted to localStorage)
     addReport(report);
     setTick(t => t + 1);
 
+    // Chain (persisted to localStorage)
     await appendToChain(report);
     setChainLength(getChainLength());
 
@@ -144,7 +176,7 @@ export default function App() {
     });
 
     // Stop map click from firing when clicking the marker
-    marker.on('click', (e) => { L.DomEvent.stopPropagation(e); });
+    marker.on('click', (e: L.LeafletMouseEvent) => { L.DomEvent.stopPropagation(e); });
     marker.bindPopup(popup).addTo(mapRef.current);
 
     markersRef.current.set(report.id, { marker, popup, root, popupEl });

@@ -1,6 +1,26 @@
 import type { Report, ChainLink } from './types';
 
-const chain: ChainLink[] = [];
+const LS_KEY = 'groundcheck:chain';
+
+function loadFromStorage(): ChainLink[] {
+  try {
+    const raw = localStorage.getItem(LS_KEY);
+    if (!raw) return [];
+    return JSON.parse(raw) as ChainLink[];
+  } catch {
+    return [];
+  }
+}
+
+function saveToStorage(chain: ChainLink[]): void {
+  try {
+    localStorage.setItem(LS_KEY, JSON.stringify(chain));
+  } catch {
+    // Storage quota exceeded or unavailable — fail silently
+  }
+}
+
+const chain: ChainLink[] = loadFromStorage();
 
 async function sha256(input: string): Promise<string> {
   const encoder = new TextEncoder();
@@ -30,6 +50,7 @@ export async function appendToChain(report: Report): Promise<ChainLink> {
   const hash = await sha256(input);
   const link: ChainLink = { id: report.id, prevHash, hash };
   chain.push(link);
+  saveToStorage(chain);
   return link;
 }
 
@@ -39,6 +60,12 @@ export function getChain(): ChainLink[] {
 
 export function getChainLength(): number {
   return chain.length;
+}
+
+/** Clear persisted chain (useful for testing). */
+export function clearChain(): void {
+  chain.length = 0;
+  localStorage.removeItem(LS_KEY);
 }
 
 // Returns: { ok: true } or { ok: false, brokenAt: index, reportId: string }
