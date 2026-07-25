@@ -79,6 +79,8 @@
   "dependencies": {
     "@types/mapbox-gl": "^3.5.0",
     "leaflet.heat": "^0.2.0",
-    "mapbox-gl": "^3.27.0"
+    "mapbox-gl": "^3.27.0",
+    "react-router-dom": "^7.18.1",
+    "tesseract.js": "^7.0.0"
   }
 }

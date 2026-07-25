@@ -6,6 +6,7 @@ import { ReportPanel } from './components/ReportPanel';
 import { ChainStatus } from './components/ChainStatus';
 import { Legend } from './components/Legend';
 import { ReportPopup } from './components/ReportPopup';
+import { IdentityBadge } from './components/IdentityBadge';
 import { addReport, getAllReports, getReport, updateReport, buildHeatmapPoints } from './lib/store';
 import { appendToChain, getChainLength } from './lib/chain';
 import { checkImpossibleTravel, recordAction } from './lib/security';
@@ -212,6 +213,7 @@ export default function App() {
       />
 
       <ChainStatus reports={getAllReports()} chainLength={chainLength} />
+      <IdentityBadge />
       <Legend />
 
       {pendingLocation && (

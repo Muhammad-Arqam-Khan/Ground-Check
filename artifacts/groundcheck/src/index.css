@@ -342,3 +342,131 @@ select.nm-input option { background: #e8ecf2; color: var(--nm-fg); }
     color: var(--nm-fg);
   }
 }
+
+/* ── Auth page layout ───────────────────────────────────────────── */
+.nm-page-center {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--nm-base);
+  padding: 24px 16px;
+}
+
+.nm-card {
+  background: var(--nm-base);
+  box-shadow: var(--nm-raised);
+  border-radius: 24px;
+  padding: 32px;
+  width: 100%;
+}
+
+/* ── Auth typography ────────────────────────────────────────────── */
+.nm-heading {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--nm-fg);
+  margin: 0;
+}
+
+.nm-sub {
+  font-size: 0.8125rem;
+  color: var(--nm-fg-muted);
+  margin: 0;
+}
+
+.nm-label {
+  display: block;
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--nm-fg-muted);
+  margin-bottom: 8px;
+}
+
+.nm-field-hint {
+  font-size: 0.6875rem;
+  color: var(--nm-dark);
+  margin: 5px 0 0 2px;
+}
+
+.nm-field-error {
+  font-size: 0.6875rem;
+  color: #c04040;
+  margin: 5px 0 0 2px;
+}
+
+.nm-error-box {
+  background: rgba(192, 64, 64, 0.08);
+  color: #c04040;
+  font-size: 0.8125rem;
+  border-radius: 12px;
+  padding: 10px 14px;
+  box-shadow: var(--nm-inset-xs);
+}
+
+.nm-mono {
+  font-family: var(--app-font-mono);
+  font-size: 0.75rem;
+  color: var(--nm-fg-muted);
+}
+
+/* ── File upload zone ───────────────────────────────────────────── */
+.nm-upload-zone {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100px;
+  border-radius: 16px;
+  border: 2px dashed var(--nm-dark);
+  background: var(--nm-base);
+  box-shadow: var(--nm-inset-sm);
+  cursor: pointer;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  padding: 20px;
+}
+.nm-upload-zone:hover {
+  border-color: var(--nm-accent);
+}
+
+/* ── Custom checkbox ────────────────────────────────────────────── */
+.nm-checkbox {
+  width: 22px;
+  height: 22px;
+  min-width: 22px;
+  border-radius: 8px;
+  background: var(--nm-base);
+  box-shadow: var(--nm-inset-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.15s, box-shadow 0.15s;
+}
+
+/* ── OCR progress bar ───────────────────────────────────────────── */
+.nm-progress-track {
+  width: 100%;
+  height: 8px;
+  border-radius: 4px;
+  background: var(--nm-base);
+  box-shadow: var(--nm-inset-xs);
+  overflow: hidden;
+}
+
+.nm-progress-fill {
+  height: 100%;
+  border-radius: 4px;
+  background: var(--nm-accent);
+  box-shadow: 2px 0 8px rgba(123, 156, 204, 0.5);
+  transition: width 0.2s ease;
+}
+
+/* ── Inset utility (for inline use) ────────────────────────────── */
+.nm-inset-sm {
+  box-shadow: var(--nm-inset-sm);
+}
+.nm-inset-xs {
+  box-shadow: var(--nm-inset-xs);
+}

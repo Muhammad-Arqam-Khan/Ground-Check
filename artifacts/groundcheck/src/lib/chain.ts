@@ -1,4 +1,4 @@
-import type { Report, ChainLink } from './types';
+import type { Report, ChainLink, SignupChainEntry } from './types';
 
 const LS_KEY = 'groundcheck:chain';
 
@@ -48,7 +48,32 @@ export async function appendToChain(report: Report): Promise<ChainLink> {
   const prevHash = chain.length > 0 ? chain[chain.length - 1].hash : '0'.repeat(64);
   const input = prevHash + JSON.stringify(coreFields(report));
   const hash = await sha256(input);
-  const link: ChainLink = { id: report.id, prevHash, hash };
+  const link: ChainLink = { id: report.id, prevHash, hash, entryType: 'report' };
+  chain.push(link);
+  saveToStorage(chain);
+  return link;
+}
+
+/** Append a signup event (verified or flagged) to the chain. */
+export async function appendSignupEvent(entry: SignupChainEntry): Promise<ChainLink> {
+  const prevHash = chain.length > 0 ? chain[chain.length - 1].hash : '0'.repeat(64);
+  // Never include raw CNIC in the hash input — use maskedCnic only
+  const safeFields = {
+    type:          entry.type,
+    identityId:    entry.identityId,
+    name:          entry.name,
+    maskedCnic:    entry.maskedCnic,
+    timestamp:     entry.timestamp,
+    ocrConfidence: entry.ocrConfidence,
+  };
+  const input = prevHash + JSON.stringify(safeFields);
+  const hash  = await sha256(input);
+  const link: ChainLink = {
+    id:        entry.identityId,
+    prevHash,
+    hash,
+    entryType: entry.type,
+  };
   chain.push(link);
   saveToStorage(chain);
   return link;
@@ -75,6 +100,11 @@ export async function verifyChain(reports: Report[]): Promise<
   let prevHash = '0'.repeat(64);
   for (let i = 0; i < chain.length; i++) {
     const link = chain[i];
+    // Skip non-report entries during report-chain verification
+    if (link.entryType && link.entryType !== 'report') {
+      prevHash = link.hash;
+      continue;
+    }
     const report = reports.find(r => r.id === link.id);
     if (!report) return { ok: false, brokenAt: i, reportId: link.id, expected: link.hash, got: 'report not found' };
     const input = prevHash + JSON.stringify(coreFields(report));
