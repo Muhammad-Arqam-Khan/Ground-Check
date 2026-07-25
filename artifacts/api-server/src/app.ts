@@ -25,7 +25,19 @@ app.use(
     },
   }),
 );
-app.use(cors());
+// Lock CORS to the configured origin(s). CORS_ORIGIN accepts a comma-separated
+// list of allowed origins. Unset in dev → allows all (Replit preview proxy).
+const rawCorsOrigin = process.env.CORS_ORIGIN;
+app.use(
+  cors(
+    rawCorsOrigin
+      ? {
+          origin: rawCorsOrigin.split(',').map(o => o.trim()),
+          credentials: true,
+        }
+      : undefined, // undefined → cors() defaults to * (dev permissive)
+  ),
+);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 

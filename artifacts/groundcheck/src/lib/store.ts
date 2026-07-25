@@ -1,7 +1,28 @@
 import type { Report } from './types';
 import { computeScore } from './scoring';
 
-const LS_KEY = 'groundcheck:reports';
+const LS_KEY   = 'groundcheck:reports';
+const SS_VOTES = 'groundcheck:votes'; // { [reportId]: 'up' | 'down' }
+
+function loadVotes(): Record<string, 'up' | 'down'> {
+  try { return JSON.parse(sessionStorage.getItem(SS_VOTES) ?? '{}'); } catch { return {}; }
+}
+
+function persistVotes(v: Record<string, 'up' | 'down'>): void {
+  try { sessionStorage.setItem(SS_VOTES, JSON.stringify(v)); } catch {}
+}
+
+/** Returns which direction this session already voted on a report, or null. */
+export function getVoteForReport(id: string): 'up' | 'down' | null {
+  return loadVotes()[id] ?? null;
+}
+
+/** Record that this session cast a vote — idempotent, overwrites prior direction. */
+export function recordVoteForReport(id: string, dir: 'up' | 'down'): void {
+  const v = loadVotes();
+  v[id] = dir;
+  persistVotes(v);
+}
 
 function loadFromStorage(): Report[] {
   try {

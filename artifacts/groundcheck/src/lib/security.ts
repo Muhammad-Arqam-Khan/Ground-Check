@@ -1,21 +1,26 @@
 const ACTION_WINDOW_MS = 30_000; // 30 seconds
 const ACTION_LIMIT = 5;
+const SS_ACTIONS = 'groundcheck:actions'; // persisted so page-refresh doesn't reset the sybil counter
 
-const actionLog: number[] = [];
+function loadActions(): number[] {
+  try { return JSON.parse(sessionStorage.getItem(SS_ACTIONS) ?? '[]'); } catch { return []; }
+}
+
+function saveActions(log: number[]): void {
+  try { sessionStorage.setItem(SS_ACTIONS, JSON.stringify(log)); } catch {}
+}
 
 export function recordAction(): void {
   const now = Date.now();
-  // Remove timestamps older than 30s
-  while (actionLog.length > 0 && actionLog[0] < now - ACTION_WINDOW_MS) {
-    actionLog.shift();
-  }
-  actionLog.push(now);
+  const log = loadActions().filter(t => t > now - ACTION_WINDOW_MS);
+  log.push(now);
+  saveActions(log);
 }
 
 // Returns a weight factor 0.0–1.0 to multiply vote contribution by
 export function getSybilWeight(): number {
   const now = Date.now();
-  const recentCount = actionLog.filter(t => t >= now - ACTION_WINDOW_MS).length;
+  const recentCount = loadActions().filter(t => t >= now - ACTION_WINDOW_MS).length;
   if (recentCount <= ACTION_LIMIT) return 1.0;
   // Linear down-weight: at 10 actions → 0.5, at 15+ → approaching 0.1
   return Math.max(0.1, 1.0 - ((recentCount - ACTION_LIMIT) / ACTION_LIMIT) * 0.5);

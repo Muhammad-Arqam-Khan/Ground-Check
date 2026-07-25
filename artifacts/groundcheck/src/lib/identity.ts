@@ -104,13 +104,15 @@ export function ocrMatches(ocrText: string, name: string, cnic: string): boolean
 
 function getAttempts(): number[] {
   try {
-    const raw = sessionStorage.getItem(SS_ATTEMPTS);
+    // Use localStorage so the limit persists across tabs/windows in the same browser.
+    // sessionStorage resets on every new tab, making it trivially bypassable.
+    const raw = localStorage.getItem(SS_ATTEMPTS);
     return raw ? (JSON.parse(raw) as number[]) : [];
   } catch { return []; }
 }
 
 function saveAttempts(a: number[]): void {
-  try { sessionStorage.setItem(SS_ATTEMPTS, JSON.stringify(a)); } catch {}
+  try { localStorage.setItem(SS_ATTEMPTS, JSON.stringify(a)); } catch {}
 }
 
 export function checkRateLimit(): { allowed: boolean; secondsUntilReset: number } {

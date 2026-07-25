@@ -4,9 +4,13 @@ import { getChain } from '../lib/chain';
 
 interface ReportPopupProps {
   report: Report;
+  /** Direction this session already voted, or null if not yet voted. */
+  votedDir?: 'up' | 'down' | null;
+  /** True when the current session filed this report (self-voting blocked). */
+  isSelf?: boolean;
 }
 
-export function ReportPopup({ report }: ReportPopupProps) {
+export function ReportPopup({ report, votedDir = null, isSelf = false }: ReportPopupProps) {
   const breakdown  = getScoreBreakdown(report);
   const color      = scoreToColor(report.score);
   const label      = scoreToLabel(report.score);
@@ -127,18 +131,32 @@ export function ReportPopup({ report }: ReportPopupProps) {
       >
         <div className="flex gap-2">
           <button
-            onClick={() => handleVote('up')}
+            onClick={() => !isSelf && votedDir === null && handleVote('up')}
             data-testid={`button-upvote-${report.id}`}
             className="nm-btn px-3 py-1.5 rounded-xl text-[11px] font-medium"
-            style={{ color: '#4ab964' }}
+            disabled={isSelf || votedDir !== null}
+            title={isSelf ? 'Cannot vote on your own report' : votedDir !== null ? 'Already voted' : undefined}
+            style={{
+              color: votedDir === 'up' ? '#fff' : '#4ab964',
+              background: votedDir === 'up' ? '#4ab964' : undefined,
+              opacity: (isSelf || (votedDir !== null && votedDir !== 'up')) ? 0.4 : 1,
+              cursor: (isSelf || votedDir !== null) ? 'not-allowed' : undefined,
+            }}
           >
             ▲ {report.up}
           </button>
           <button
-            onClick={() => handleVote('down')}
+            onClick={() => !isSelf && votedDir === null && handleVote('down')}
             data-testid={`button-downvote-${report.id}`}
             className="nm-btn px-3 py-1.5 rounded-xl text-[11px] font-medium"
-            style={{ color: '#dc3c3c' }}
+            disabled={isSelf || votedDir !== null}
+            title={isSelf ? 'Cannot vote on your own report' : votedDir !== null ? 'Already voted' : undefined}
+            style={{
+              color: votedDir === 'down' ? '#fff' : '#dc3c3c',
+              background: votedDir === 'down' ? '#dc3c3c' : undefined,
+              opacity: (isSelf || (votedDir !== null && votedDir !== 'down')) ? 0.4 : 1,
+              cursor: (isSelf || votedDir !== null) ? 'not-allowed' : undefined,
+            }}
           >
             ▼ {report.down}
           </button>

@@ -7,10 +7,11 @@ import { ChainStatus } from './components/ChainStatus';
 import { Legend } from './components/Legend';
 import { ReportPopup } from './components/ReportPopup';
 import { IdentityBadge } from './components/IdentityBadge';
-import { addReport, getAllReports, getReport, updateReport, buildHeatmapPoints, getMeanRadiusMeters } from './lib/store';
+import { addReport, getAllReports, getReport, updateReport, buildHeatmapPoints, getMeanRadiusMeters, getVoteForReport, recordVoteForReport } from './lib/store';
 import { appendToChain, getChainLength } from './lib/chain';
 import { checkImpossibleTravel, recordAction } from './lib/security';
 import { computeScore, scoreToColor } from './lib/scoring';
+import { SESSION_ID } from './lib/session';
 import type { Report } from './lib/types';
 
 // Fix Leaflet's default icon path issues with bundlers
@@ -112,7 +113,13 @@ export default function App() {
     for (const report of persisted) {
       const popupEl = document.createElement('div');
       const root = createRoot(popupEl);
-      root.render(<ReportPopup report={report} />);
+      root.render(
+        <ReportPopup
+          report={report}
+          votedDir={getVoteForReport(report.id)}
+          isSelf={report.session === SESSION_ID}
+        />
+      );
 
       const popup = L.popup({
         className: 'gc-popup',
@@ -196,7 +203,13 @@ export default function App() {
     const item = markersRef.current.get(report.id);
     if (!item) return;
     item.marker.setIcon(createLeafletIcon(report.score, report.flagged));
-    item.root.render(<ReportPopup report={report} />);
+    item.root.render(
+      <ReportPopup
+        report={report}
+        votedDir={getVoteForReport(report.id)}
+        isSelf={report.session === SESSION_ID}
+      />
+    );
   }, []);
 
   const handleSubmitReport = useCallback(async (report: Report) => {
@@ -217,7 +230,14 @@ export default function App() {
     // Popup container (React renders into it)
     const popupEl = document.createElement('div');
     const root = createRoot(popupEl);
-    root.render(<ReportPopup report={report} />);
+    // New reports filed in this session are "self" — voting on your own report is blocked
+    root.render(
+      <ReportPopup
+        report={report}
+        votedDir={null}
+        isSelf={true}
+      />
+    );
 
     const popup = L.popup({
       className: 'gc-popup',
@@ -255,6 +275,11 @@ export default function App() {
       const { id, dir } = (e as CustomEvent<{ id: string; dir: 'up' | 'down' }>).detail;
       const report = getReport(id);
       if (!report) return;
+      // Block self-voting: reporter can't upvote their own report
+      if (report.session === SESSION_ID) return;
+      // Block double-voting: one vote per report per session
+      if (getVoteForReport(id) !== null) return;
+      recordVoteForReport(id, dir);
       recordAction();
       const updated = updateReport(id, dir === 'up' ? { up: report.up + 1 } : { down: report.down + 1 });
       if (updated) {
