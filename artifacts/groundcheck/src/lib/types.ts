@@ -1,9 +1,16 @@
 export type ReportCategory = 'fraud' | 'hazard' | 'unsafe' | 'scam';
 
+export interface OsmFeature {
+  name: string;       // tags.name or generated fallback
+  kind: string;       // e.g. "supermarket", "residential", "cafe"
+  distanceM: number;
+}
+
 export interface OsmResult {
   matched: boolean | null;  // null = no Overpass reachability
   nearestM: number | null;
   count: number;
+  features: OsmFeature[];   // up to 10 closest, sorted by distance
 }
 
 export interface Report {

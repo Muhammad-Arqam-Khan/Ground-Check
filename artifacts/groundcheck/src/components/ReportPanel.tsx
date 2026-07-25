@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import type { ReportCategory, OsmResult, Report } from '../lib/types';
 import { queryOverpass } from '../lib/overpass';
 import { SESSION_ID } from '../lib/session';
@@ -15,6 +15,7 @@ export function ReportPanel({ pendingLocation, onSubmit, onClose }: ReportPanelP
   const [desc, setDesc] = useState<string>('');
   const [osmResult, setOsmResult] = useState<OsmResult | null>(null);
   const [loadingOsm, setLoadingOsm] = useState<boolean>(true);
+  const [osmExpanded, setOsmExpanded] = useState<boolean>(false);
 
   const timerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const abortRef = useRef<AbortController | undefined>(undefined);
@@ -149,20 +150,86 @@ export function ReportPanel({ pendingLocation, onSubmit, onClose }: ReportPanelP
             />
           </div>
 
-          {/* OSM Readout */}
-          <div className="p-3 bg-secondary border border-secondary-border rounded">
-            <h3 className="text-xs font-semibold text-muted-foreground mb-1">OSM CROSS-CHECK</h3>
-            <p data-testid="text-osm-readout" className="text-xs font-mono">
-              {loadingOsm ? (
-                <span className="text-muted-foreground">Querying OSM...</span>
-              ) : osmResult?.matched === null ? (
-                <span className="text-amber-500">OSM unavailable — neutral score</span>
-              ) : osmResult?.matched ? (
-                <span className="text-primary">{osmResult.count} features found within {osmResult.nearestM}m</span>
-              ) : (
-                <span className="text-destructive">No matching features found</span>
-              )}
-            </p>
+          {/* OSM Cross-Check — collapseable */}
+          <div className="border border-border rounded overflow-hidden">
+            {/* Header / toggle row */}
+            <button
+              type="button"
+              onClick={() => setOsmExpanded(v => !v)}
+              className="w-full flex items-center justify-between px-3 py-2 bg-secondary hover:bg-secondary/80 transition-colors"
+            >
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-semibold text-muted-foreground tracking-wider">OSM CROSS-CHECK</span>
+                {loadingOsm && (
+                  <span className="text-[10px] font-mono text-muted-foreground animate-pulse">querying…</span>
+                )}
+                {!loadingOsm && osmResult?.matched === true && (
+                  <span
+                    data-testid="text-osm-readout"
+                    className="text-[10px] font-mono text-primary bg-primary/10 px-1.5 py-0.5 rounded"
+                  >
+                    {osmResult.count} found · nearest {osmResult.nearestM}m
+                  </span>
+                )}
+                {!loadingOsm && osmResult?.matched === false && (
+                  <span
+                    data-testid="text-osm-readout"
+                    className="text-[10px] font-mono text-destructive"
+                  >
+                    no features
+                  </span>
+                )}
+                {!loadingOsm && osmResult?.matched === null && (
+                  <span
+                    data-testid="text-osm-readout"
+                    className="text-[10px] font-mono text-amber-500"
+                  >
+                    unavailable
+                  </span>
+                )}
+              </div>
+              <span className="text-muted-foreground text-xs select-none transition-transform duration-200"
+                    style={{ transform: osmExpanded ? 'rotate(180deg)' : 'rotate(0deg)', display: 'inline-block' }}>
+                ▾
+              </span>
+            </button>
+
+            {/* Expandable feature list */}
+            {osmExpanded && (
+              <div className="border-t border-border bg-black/20">
+                {loadingOsm ? (
+                  <p className="px-3 py-3 text-xs font-mono text-muted-foreground animate-pulse">
+                    Querying OpenStreetMap…
+                  </p>
+                ) : osmResult?.matched === null ? (
+                  <p className="px-3 py-3 text-xs font-mono text-amber-500">
+                    OSM unavailable — neutral score applied
+                  </p>
+                ) : !osmResult?.features.length ? (
+                  <p className="px-3 py-3 text-xs font-mono text-muted-foreground">
+                    No matching OSM features found within radius
+                  </p>
+                ) : (
+                  <ul className="max-h-44 overflow-y-auto divide-y divide-border/40">
+                    {osmResult!.features.map((f, i) => (
+                      <li key={i} className="flex items-center justify-between px-3 py-1.5 gap-2">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <span className="shrink-0 text-[9px] font-mono bg-primary/15 text-primary px-1.5 py-0.5 rounded uppercase tracking-wide">
+                            {f.kind}
+                          </span>
+                          <span className="text-xs text-foreground truncate" title={f.name}>
+                            {f.name}
+                          </span>
+                        </div>
+                        <span className="shrink-0 text-[10px] font-mono text-muted-foreground whitespace-nowrap">
+                          {f.distanceM}m
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            )}
           </div>
         </div>
 
