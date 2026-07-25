@@ -7,7 +7,7 @@ import { ChainStatus } from './components/ChainStatus';
 import { Legend } from './components/Legend';
 import { ReportPopup } from './components/ReportPopup';
 import { IdentityBadge } from './components/IdentityBadge';
-import { addReport, getAllReports, getReport, updateReport, buildHeatmapPoints } from './lib/store';
+import { addReport, getAllReports, getReport, updateReport, buildHeatmapPoints, getMeanRadiusMeters } from './lib/store';
 import { appendToChain, getChainLength } from './lib/chain';
 import { checkImpossibleTravel, recordAction } from './lib/security';
 import { computeScore, scoreToColor } from './lib/scoring';
@@ -32,6 +32,19 @@ function createLeafletIcon(score: number, flagged: boolean): L.DivIcon {
     iconAnchor: [8, 8],
     popupAnchor: [0, -12],
   });
+}
+
+/**
+ * Convert a geographic distance in meters to Leaflet screen pixels at the
+ * given zoom level and latitude.
+ *
+ * Formula: at zoom z, one pixel covers
+ *   (Earth circumference × cos(lat)) / 2^(z+8)  meters
+ */
+function metersToPixels(meters: number, lat: number, zoom: number): number {
+  const metersPerPixel =
+    (40075016.686 * Math.cos((lat * Math.PI) / 180)) / Math.pow(2, zoom + 8);
+  return Math.max(1, meters / metersPerPixel);
 }
 
 export default function App() {
@@ -77,9 +90,12 @@ export default function App() {
       { maxZoom: 16, attribution: '' }
     ).addTo(map);
 
-    // Heat layer (leaflet.heat)
+    // Heat layer (leaflet.heat) — initial radius computed from geographic meters
+    const initialZoom = map.getZoom();
+    const initialCenter = map.getCenter();
+    const initialRadiusPx = metersToPixels(getMeanRadiusMeters(), initialCenter.lat, initialZoom);
     heatRef.current = L.heatLayer([], {
-      radius: 35,
+      radius: initialRadiusPx,
       blur: 25,
       maxZoom: 17,
       max: 1.0,
@@ -114,8 +130,14 @@ export default function App() {
 
       markersRef.current.set(report.id, { marker, popup, root, popupEl });
     }
-    if (persisted.length > 0) {
-      heatRef.current?.setLatLngs(buildHeatmapPoints());
+    if (persisted.length > 0 && heatRef.current) {
+      // Recompute radius now that reports are loaded (getMeanRadiusMeters has data)
+      const rehydratedRadiusPx = metersToPixels(getMeanRadiusMeters(), initialCenter.lat, initialZoom);
+      // Push the new radius into the simpleheat canvas renderer directly
+      const simpleheat = (heatRef.current as unknown as { _heat?: { radius(r: number): void } })._heat;
+      if (simpleheat) simpleheat.radius(rehydratedRadiusPx);
+      (heatRef.current.options as Record<string, unknown>).radius = rehydratedRadiusPx;
+      heatRef.current.setLatLngs(buildHeatmapPoints());
     }
     // ─────────────────────────────────────────────────────────────────────
 
@@ -133,9 +155,42 @@ export default function App() {
     };
   }, []);
 
-  const refreshHeatmap = useCallback(() => {
-    heatRef.current?.setLatLngs(buildHeatmapPoints());
+  /**
+   * Apply a new pixel radius to the heat layer's internal simpleheat renderer.
+   *
+   * leaflet.heat stores a simpleheat canvas instance as `_heat`.
+   * Mutating `heat.options.radius` alone does nothing — the simpleheat
+   * instance must be told directly via its `.radius()` method, after which
+   * a call to `heat.redraw()` (triggered by setLatLngs) repaints the canvas.
+   */
+  const applyHeatRadius = useCallback((pixelRadius: number) => {
+    const heat = heatRef.current;
+    if (!heat) return;
+    // Access the private simpleheat instance and set its radius
+    const simpleheat = (heat as unknown as { _heat?: { radius(r: number): void } })._heat;
+    if (simpleheat) {
+      simpleheat.radius(pixelRadius);
+    }
+    // Keep options in sync so the value is correct if the layer is re-initialised
+    (heat.options as Record<string, unknown>).radius = pixelRadius;
   }, []);
+
+  /**
+   * Recompute heatmap data AND pixel radius so the glow matches the real
+   * geographic radius at the current zoom level.
+   */
+  const refreshHeatmap = useCallback(() => {
+    const heat = heatRef.current;
+    const map = mapRef.current;
+    if (!heat || !map) return;
+
+    const zoom = map.getZoom();
+    const center = map.getCenter();
+    const pixelRadius = metersToPixels(getMeanRadiusMeters(), center.lat, zoom);
+
+    applyHeatRadius(pixelRadius);
+    heat.setLatLngs(buildHeatmapPoints());
+  }, [applyHeatRadius]);
 
   const updateMarkerVisuals = useCallback((report: Report) => {
     const item = markersRef.current.get(report.id);
@@ -184,6 +239,14 @@ export default function App() {
 
     refreshHeatmap();
     setPendingLocation(null);
+  }, [refreshHeatmap]);
+
+  // Re-compute heatmap pixel radius whenever the user zooms in/out
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+    map.on('zoom', refreshHeatmap);
+    return () => { map.off('zoom', refreshHeatmap); };
   }, [refreshHeatmap]);
 
   // Global vote events dispatched from ReportPopup (inside Leaflet popup DOM)

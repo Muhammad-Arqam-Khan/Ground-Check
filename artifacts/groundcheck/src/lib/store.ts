@@ -57,3 +57,14 @@ export function buildHeatmapPoints(): [number, number, number][] {
     .filter(r => !r.flagged)
     .map(r => [r.lat, r.lon, r.score / 100] as [number, number, number]);
 }
+
+/**
+ * Returns the mean radiusMeters across all non-flagged reports,
+ * or a default of 150 m when there are no reports yet.
+ */
+export function getMeanRadiusMeters(): number {
+  const active = reports.filter(r => !r.flagged);
+  if (active.length === 0) return 150;
+  const sum = active.reduce((acc, r) => acc + r.radiusMeters, 0);
+  return sum / active.length;
+}
