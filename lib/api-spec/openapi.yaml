@@ -10,6 +10,8 @@ servers:
 tags:
   - name: health
     description: Health operations
+  - name: reports
+    description: Community trust reports
 paths:
   /healthz:
     get:
@@ -24,6 +26,104 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+  /reports:
+    get:
+      operationId: listReports
+      tags: [reports]
+      summary: List all reports
+      description: Returns all community trust reports
+      responses:
+        "200":
+          description: List of reports
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Report"
+    post:
+      operationId: createReport
+      tags: [reports]
+      summary: Create a report
+      description: Submits a new community trust report
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Report"
+      responses:
+        "201":
+          description: Report created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Report"
+        "400":
+          description: Invalid report data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Report with this ID already exists
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /reports/{id}:
+    get:
+      operationId: getReport
+      tags: [reports]
+      summary: Get a report by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Report found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Report"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    patch:
+      operationId: updateReport
+      tags: [reports]
+      summary: Partially update a report
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReportPatch"
+      responses:
+        "200":
+          description: Updated report
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Report"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
 components:
   schemas:
     HealthStatus:
@@ -33,4 +133,114 @@ components:
           type: string
       required:
         - status
-
+    Report:
+      type: object
+      description: >
+        Canonical report schema shared between web and mobile.
+        Field names follow the mobile convention (description / timestamp).
+        The web adapter in store.ts maps desc↔description and time↔timestamp.
+      properties:
+        id:
+          type: string
+        lat:
+          type: number
+        lon:
+          type: number
+        radiusMeters:
+          type: number
+        category:
+          type: string
+          description: >
+            Free-form category string. Web uses fraud|hazard|unsafe|scam;
+            mobile uses road_hazard|flooding|power_outage|public_safety|infrastructure|health_risk|other.
+        description:
+          type: string
+        timestamp:
+          type: number
+          description: Unix epoch milliseconds
+        up:
+          type: integer
+        down:
+          type: integer
+        flagged:
+          type: boolean
+        score:
+          type: number
+        session:
+          type: string
+          description: Web session ID (omitted for mobile reports)
+        reporterStatus:
+          type: string
+          enum: [verified, flagged, guest]
+          description: Identity status at submission time (web only)
+        reporterIdentityId:
+          type: string
+          description: Identity record ID (web only, omitted for guest)
+        osm:
+          $ref: "#/components/schemas/OsmResult"
+      required:
+        - id
+        - lat
+        - lon
+        - radiusMeters
+        - category
+        - description
+        - timestamp
+        - up
+        - down
+        - flagged
+        - score
+    ReportPatch:
+      type: object
+      description: Partial update payload for a report (votes, flagged, score)
+      properties:
+        up:
+          type: integer
+        down:
+          type: integer
+        flagged:
+          type: boolean
+        score:
+          type: number
+        reporterStatus:
+          type: string
+    OsmResult:
+      type: object
+      properties:
+        matched:
+          type: boolean
+          nullable: true
+        nearestM:
+          type: number
+          nullable: true
+        count:
+          type: integer
+        features:
+          type: array
+          items:
+            $ref: "#/components/schemas/OsmFeature"
+      required:
+        - matched
+        - nearestM
+        - count
+        - features
+    OsmFeature:
+      type: object
+      properties:
+        name:
+          type: string
+        kind:
+          type: string
+        distanceM:
+          type: number
+      required:
+        - name
+        - kind
+        - distanceM
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+      required:
+        - error

@@ -7,7 +7,7 @@ import { ChainStatus } from './components/ChainStatus';
 import { Legend } from './components/Legend';
 import { ReportPopup } from './components/ReportPopup';
 import { IdentityBadge } from './components/IdentityBadge';
-import { addReport, getAllReports, getReport, updateReport, buildHeatmapPoints, getMeanRadiusMeters, getVoteForReport, recordVoteForReport } from './lib/store';
+import { addReport, getAllReports, getReport, updateReport, buildHeatmapPoints, getMeanRadiusMeters, getVoteForReport, recordVoteForReport, initStore } from './lib/store';
 import { appendToChain, getChainLength } from './lib/chain';
 import { checkImpossibleTravel, recordAction } from './lib/security';
 import { computeScore, scoreToColor } from './lib/scoring';
@@ -56,8 +56,8 @@ export default function App() {
   const [pendingLocation, setPendingLocation] = useState<{ lat: number; lon: number } | null>(null);
   // Initialize from persisted chain so count survives refresh
   const [chainLength, setChainLength] = useState(() => getChainLength());
-  // Seed tick from loaded reports so the overlay reflects persisted data immediately
-  const [, setTick] = useState(() => getAllReports().length);
+  // Tick used to trigger re-renders when the report list changes
+  const [, setTick] = useState(0);
 
   const markersRef = useRef<Map<string, {
     marker: L.Marker;
@@ -108,46 +108,6 @@ export default function App() {
       },
     }).addTo(map);
 
-    // ── Re-hydrate persisted reports ──────────────────────────────────────
-    const persisted = getAllReports();
-    for (const report of persisted) {
-      const popupEl = document.createElement('div');
-      const root = createRoot(popupEl);
-      root.render(
-        <ReportPopup
-          report={report}
-          votedDir={getVoteForReport(report.id)}
-          isSelf={report.session === SESSION_ID}
-        />
-      );
-
-      const popup = L.popup({
-        className: 'gc-popup',
-        minWidth: 240,
-        maxWidth: 300,
-        closeButton: true,
-        autoPan: true,
-      }).setContent(popupEl);
-
-      const marker = L.marker([report.lat, report.lon], {
-        icon: createLeafletIcon(report.score, report.flagged),
-      });
-      marker.on('click', (e: L.LeafletMouseEvent) => { L.DomEvent.stopPropagation(e); });
-      marker.bindPopup(popup).addTo(map);
-
-      markersRef.current.set(report.id, { marker, popup, root, popupEl });
-    }
-    if (persisted.length > 0 && heatRef.current) {
-      // Recompute radius now that reports are loaded (getMeanRadiusMeters has data)
-      const rehydratedRadiusPx = metersToPixels(getMeanRadiusMeters(), initialCenter.lat, initialZoom);
-      // Push the new radius into the simpleheat canvas renderer directly
-      const simpleheat = (heatRef.current as unknown as { _heat?: { radius(r: number): void } })._heat;
-      if (simpleheat) simpleheat.radius(rehydratedRadiusPx);
-      (heatRef.current.options as Record<string, unknown>).radius = rehydratedRadiusPx;
-      heatRef.current.setLatLngs(buildHeatmapPoints());
-    }
-    // ─────────────────────────────────────────────────────────────────────
-
     // Map click → start a report (only on bare map, not on markers)
     map.on('click', (e: L.LeafletMouseEvent) => {
       setPendingLocation({ lat: e.latlng.lat, lon: e.latlng.lng });
@@ -155,7 +115,54 @@ export default function App() {
 
     mapRef.current = map;
 
+    // ── Async: fetch reports from API then hydrate map ────────────────────
+    let cancelled = false;
+    (async () => {
+      await initStore();
+      if (cancelled || !mapRef.current) return;
+
+      const persisted = getAllReports();
+      for (const report of persisted) {
+        const popupEl = document.createElement('div');
+        const root = createRoot(popupEl);
+        root.render(
+          <ReportPopup
+            report={report}
+            votedDir={getVoteForReport(report.id)}
+            isSelf={report.session === SESSION_ID}
+          />
+        );
+
+        const popup = L.popup({
+          className: 'gc-popup',
+          minWidth: 240,
+          maxWidth: 300,
+          closeButton: true,
+          autoPan: true,
+        }).setContent(popupEl);
+
+        const marker = L.marker([report.lat, report.lon], {
+          icon: createLeafletIcon(report.score, report.flagged),
+        });
+        marker.on('click', (e: L.LeafletMouseEvent) => { L.DomEvent.stopPropagation(e); });
+        marker.bindPopup(popup).addTo(map);
+
+        markersRef.current.set(report.id, { marker, popup, root, popupEl });
+      }
+
+      if (persisted.length > 0 && heatRef.current) {
+        const rehydratedRadiusPx = metersToPixels(getMeanRadiusMeters(), initialCenter.lat, initialZoom);
+        const simpleheat = (heatRef.current as unknown as { _heat?: { radius(r: number): void } })._heat;
+        if (simpleheat) simpleheat.radius(rehydratedRadiusPx);
+        (heatRef.current.options as Record<string, unknown>).radius = rehydratedRadiusPx;
+        heatRef.current.setLatLngs(buildHeatmapPoints());
+      }
+
+      setTick(persisted.length);
+    })();
+
     return () => {
+      cancelled = true;
       map.remove();
       mapRef.current = null;
       heatRef.current = null;
