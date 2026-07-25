@@ -122,12 +122,88 @@
   --nm-inset-xs: inset 2px  2px  5px var(--nm-dark), inset -2px  -2px  5px var(--nm-light);
 }
 
+/* ── Dark mode neumorphic tokens ─────────────────────────────────
+   Applied when <html class="dark"> is set.
+   Deep navy surface: #1e2533. Light source still top-left.         */
+html.dark {
+  --nm-base:     #1e2533;
+  --nm-light:    #263042;
+  --nm-dark:     #141b26;
+  --nm-accent:   #7b9ccc;
+  --nm-fg:       #c6d4e3;
+  --nm-fg-muted: #6b7f97;
+
+  --nm-raised:    8px  8px 22px var(--nm-dark), -8px  -8px 22px var(--nm-light);
+  --nm-raised-sm: 4px  4px 12px var(--nm-dark), -4px  -4px 12px var(--nm-light);
+  --nm-raised-xs: 2px  2px  7px var(--nm-dark), -2px  -2px  7px var(--nm-light);
+  --nm-inset:    inset 6px  6px 16px var(--nm-dark), inset -6px  -6px 16px var(--nm-light);
+  --nm-inset-sm: inset 3px  3px  9px var(--nm-dark), inset -3px  -3px  9px var(--nm-light);
+  --nm-inset-xs: inset 2px  2px  5px var(--nm-dark), inset -2px  -2px  5px var(--nm-light);
+
+  color-scheme: dark;
+}
+
 html, body, #root {
   height: 100%;
   margin: 0;
   padding: 0;
   background: var(--nm-base);
   color: var(--nm-fg);
+}
+
+/* ── App header ─────────────────────────────────────────────────── */
+.gc-header {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: 52px;
+  z-index: 1300;
+  background: var(--nm-base);
+  box-shadow: 0 2px 12px var(--nm-dark), 0 -1px 0 var(--nm-light);
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  gap: 12px;
+  transition: background 0.25s ease, box-shadow 0.25s ease;
+}
+
+.gc-header-side {
+  flex: 1;
+  display: flex;
+  align-items: center;
+}
+
+.gc-header-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  flex-shrink: 0;
+}
+
+.gc-header-title {
+  font-family: var(--app-font-sans);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--nm-fg);
+  letter-spacing: -0.01em;
+  line-height: 1;
+}
+
+.gc-header-sub {
+  font-family: var(--app-font-mono);
+  font-size: 9px;
+  font-weight: 500;
+  color: var(--nm-fg-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  line-height: 1;
+}
+
+/* Push map and overlaid panels below the header */
+.gc-map-root {
+  position: fixed;
+  top: 52px;
+  left: 0; right: 0; bottom: 0;
 }
 
 .font-mono { font-family: var(--app-font-mono) !important; }

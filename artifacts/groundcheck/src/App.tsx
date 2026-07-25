@@ -6,7 +6,7 @@ import { ReportPanel } from './components/ReportPanel';
 import { ChainStatus } from './components/ChainStatus';
 import { Legend } from './components/Legend';
 import { ReportPopup } from './components/ReportPopup';
-import { IdentityBadge } from './components/IdentityBadge';
+import { AppHeader } from './components/AppHeader';
 import { addReport, getAllReports, getReport, updateReport, buildHeatmapPoints, getMeanRadiusMeters, getVoteForReport, recordVoteForReport, initStore } from './lib/store';
 import { appendToChain, getChainLength } from './lib/chain';
 import { checkImpossibleTravel, recordAction } from './lib/security';
@@ -54,10 +54,24 @@ export default function App() {
   const heatRef = useRef<L.HeatLayer | null>(null);
 
   const [pendingLocation, setPendingLocation] = useState<{ lat: number; lon: number } | null>(null);
-  // Initialize from persisted chain so count survives refresh
   const [chainLength, setChainLength] = useState(() => getChainLength());
-  // Tick used to trigger re-renders when the report list changes
   const [, setTick] = useState(0);
+
+  // ── Theme (light / dark) persisted in localStorage ──────────────
+  const [darkMode, setDarkMode] = useState(() => {
+    return localStorage.getItem('groundcheck:theme') === 'dark';
+  });
+
+  useEffect(() => {
+    const html = document.documentElement;
+    if (darkMode) {
+      html.classList.add('dark');
+      localStorage.setItem('groundcheck:theme', 'dark');
+    } else {
+      html.classList.remove('dark');
+      localStorage.setItem('groundcheck:theme', 'light');
+    }
+  }, [darkMode]);
 
   const markersRef = useRef<Map<string, {
     marker: L.Marker;
@@ -300,24 +314,27 @@ export default function App() {
   }, [refreshHeatmap, updateMarkerVisuals]);
 
   return (
-    <div style={{ position: 'relative', width: '100vw', height: '100vh', background: 'var(--nm-base)' }}>
-      <div
-        ref={mapContainer}
-        data-testid="map-container"
-        style={{ width: '100%', height: '100%' }}
-      />
+    <>
+      <AppHeader darkMode={darkMode} onToggleTheme={() => setDarkMode(d => !d)} />
 
-      <ChainStatus reports={getAllReports()} chainLength={chainLength} />
-      <IdentityBadge />
-      <Legend />
-
-      {pendingLocation && (
-        <ReportPanel
-          pendingLocation={pendingLocation}
-          onSubmit={handleSubmitReport}
-          onClose={() => setPendingLocation(null)}
+      <div className="gc-map-root">
+        <div
+          ref={mapContainer}
+          data-testid="map-container"
+          style={{ width: '100%', height: '100%' }}
         />
-      )}
-    </div>
+
+        <ChainStatus reports={getAllReports()} chainLength={chainLength} />
+        <Legend />
+
+        {pendingLocation && (
+          <ReportPanel
+            pendingLocation={pendingLocation}
+            onSubmit={handleSubmitReport}
+            onClose={() => setPendingLocation(null)}
+          />
+        )}
+      </div>
+    </>
   );
 }
