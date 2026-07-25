@@ -1,0 +1,64 @@
+@import 'tailwindcss';
+
+@theme inline {
+  --color-primary: var(--slide-primary);
+  --color-accent: var(--slide-accent);
+  --color-bg: var(--slide-bg);
+  --color-text: var(--slide-text);
+  --color-muted: var(--slide-muted);
+  --font-display: var(--font-display-family);
+  --font-body: var(--font-body-family);
+  --font-mono: var(--font-mono-family);
+}
+
+:root {
+  --slide-primary: #06d6c4;
+  --slide-accent: #3b82f6;
+  --slide-bg: #080d18;
+  --slide-text: #e2e8f0;
+  --slide-muted: #64748b;
+  --slide-surface: #0d1627;
+  --slide-surface-2: #111f38;
+  --slide-border: #1a3a5c;
+  --slide-success: #22c55e;
+  --slide-warning: #f59e0b;
+  --slide-danger: #ef4444;
+  --font-display-family: 'Space Grotesk', system-ui, sans-serif;
+  --font-body-family: 'Inter', system-ui, sans-serif;
+  --font-mono-family: 'JetBrains Mono', monospace;
+  color-scheme: dark;
+}
+
+html,
+body,
+#root {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: var(--slide-bg);
+  color: var(--slide-text);
+  font-family: var(--font-body-family);
+}
+
+.slide {
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.slide-viewer {
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.font-display {
+  font-family: var(--font-display-family);
+}
+
+.font-mono {
+  font-family: var(--font-mono-family) !important;
+}

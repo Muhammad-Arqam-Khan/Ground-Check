@@ -1,0 +1,27 @@
+kind = "slides"
+previewPath = "/groundcheck-pitch/"
+title = "GroundCheck — HackSummer'26 Pitch Deck"
+version = "1.0.0"
+id = "artifacts/groundcheck-pitch"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/groundcheck-pitch/" ]
+localPort = 19341
+
+[services.development]
+run = "pnpm --filter @workspace/groundcheck-pitch run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/groundcheck-pitch", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/groundcheck-pitch/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "19341"
+BASE_PATH = "/groundcheck-pitch/"

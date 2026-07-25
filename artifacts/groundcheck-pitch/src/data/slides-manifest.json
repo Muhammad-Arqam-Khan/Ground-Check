@@ -1,0 +1,74 @@
+[
+  {
+    "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567801",
+    "position": 1,
+    "filepath": "src/pages/slides/Slide1Cover.tsx",
+    "title": "GroundCheck",
+    "description": "Cover slide — HackSummer'26 pitch deck with dark city heatmap hero",
+    "speakerNotes": ""
+  },
+  {
+    "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567802",
+    "position": 2,
+    "filepath": "src/pages/slides/Slide2Problem.tsx",
+    "title": "The Problem",
+    "description": "Three core problems: no independent verification, gameable trust signals, no spatial trust picture",
+    "speakerNotes": ""
+  },
+  {
+    "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567803",
+    "position": 3,
+    "filepath": "src/pages/slides/Slide3Solution.tsx",
+    "title": "The Solution",
+    "description": "Three guarantees: cross-checked, visualized, protected",
+    "speakerNotes": ""
+  },
+  {
+    "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567804",
+    "position": 4,
+    "filepath": "src/pages/slides/Slide4Demo.tsx",
+    "title": "How It Works",
+    "description": "Live demo walkthrough: click, drag radius, submit",
+    "speakerNotes": ""
+  },
+  {
+    "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567805",
+    "position": 5,
+    "filepath": "src/pages/slides/Slide5TrustScoring.tsx",
+    "title": "Trust Scoring",
+    "description": "Scoring formula: osmPoints + communityPoints + basePoints, bands, and heatmap mapping",
+    "speakerNotes": ""
+  },
+  {
+    "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567806",
+    "position": 6,
+    "filepath": "src/pages/slides/Slide6Security.tsx",
+    "title": "The Security Layer",
+    "description": "Three defenses: sybil defense, impossible travel, SHA-256 hash chain",
+    "speakerNotes": ""
+  },
+  {
+    "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567807",
+    "position": 7,
+    "filepath": "src/pages/slides/Slide7OSM.tsx",
+    "title": "Ground Truth via OSM",
+    "description": "OpenStreetMap Overpass API integration and category-tag mappings",
+    "speakerNotes": ""
+  },
+  {
+    "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567808",
+    "position": 8,
+    "filepath": "src/pages/slides/Slide8Architecture.tsx",
+    "title": "Architecture",
+    "description": "Single-page architecture: Mapbox GL, scoring engine, security module, hash chain, Overpass client",
+    "speakerNotes": ""
+  },
+  {
+    "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567809",
+    "position": 9,
+    "filepath": "src/pages/slides/Slide9Closing.tsx",
+    "title": "Why GroundCheck Wins",
+    "description": "Rubric alignment table covering all five judging criteria",
+    "speakerNotes": ""
+  }
+]
