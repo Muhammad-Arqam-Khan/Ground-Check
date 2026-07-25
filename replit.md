@@ -40,6 +40,18 @@ A live location trust-verification map for HackSummer'26 ("Trust Me"). Users cli
 
 GroundCheck lets users drop reports on a live Mapbox map (centered on Islamabad), cross-check them against OSM data via the Overpass API, and see their trust score rendered as a color-coded marker (green ≥70, amber 40–69, red <40) plus a heatmap contribution. Reports are upvotable/downvotable, protected by sybil down-weighting and impossible-travel detection, and auditable via a tamper-evident SHA-256 hash chain.
 
+## Environment variables
+
+Copy `.env.example` to `.env` and fill in real values — never commit `.env` (it is gitignored).
+
+| Variable | Required | Description |
+|---|---|---|
+| `DATABASE_URL` | Yes (API server) | PostgreSQL connection string for `@workspace/db` |
+| `PORT` | Yes (API server) | HTTP port — injected automatically by Replit |
+| `SESSION_SECRET` | Yes (API server) | Long random string used to sign Express sessions |
+| `LOG_LEVEL` | No | Pino log level (`info` default) |
+| `NODE_ENV` | No | `development` or `production` |
+
 ## User preferences
 
 _None yet._
